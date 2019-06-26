@@ -9,6 +9,7 @@ Given that ODEs are commonly used for time series analysis, my hypothesis is tha
 
 https://colab.research.google.com/drive/1e9g_X_DRhREfIhSVqwXqPqTriWVPRVZc
 
+https://colab.research.google.com/drive/1WUNbQV0g-k1wSRueQyuftZx6XKEr5OBx
 
 # TODO priority queue:
 	+ build NODE classification demo!!!
@@ -19,10 +20,7 @@ https://colab.research.google.com/drive/1e9g_X_DRhREfIhSVqwXqPqTriWVPRVZc
 
 	+ base index on 'mjd' column (time series indexing)
 
-
 	+ 
-
-
 
 
 Time-of documentation:
@@ -31,16 +29,11 @@ Time-of documentation:
 11:04 trained using anandijain/sip/gym-sip/regression.py neural network on training_set.csv of LSST and tested on the test_set_sample.py
 	
 	+ the model is just linear 5 -> 20 -> 3 -> 8 -> 4 -> 1 (definitely not optimal, but wanted to just train on anything)
-
 	+ the data was scaled -1 to 1 and the p-value for correct flux prediction was 0.1
-
 	+ the inputs were all of the columns besides the flux label.
-
 	+ this is most likey not proper, as flux_err for an input might not be kosher
-
 	+ the accuracy on the training set was [correct guesses: 9475 / total guesses: 11107] ~ 0.8531 %
-
-	+ 3:26 PM update - this accuracy ^ is most likely false as the object_id was given as one of the inputs to the network, while I only trained on one epoch, this definitely will cause overfitting
+	+ (3:26 PM update) - this accuracy ^ is most likely false as the object_id was given as one of the inputs to the network, while I only trained on one epoch, this definitely will cause overfitting
 
 11:47 AM using matplotlib to interpret timeseries data
 	 
@@ -64,6 +57,7 @@ Time-of documentation:
 
 5:00
 
-	+ weak tf model on merged semi-working
+	+ weak tf model on merged semi-working, bugged loss
 
 	+ testing on colab, something about my CPU was throwing errors/warnings
+

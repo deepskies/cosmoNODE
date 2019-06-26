@@ -7,6 +7,7 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
+import macros as m
 
 passbands = {0 : 'r',
 			 1 : 'g',
@@ -18,35 +19,47 @@ passbands = {0 : 'r',
 
 class Demo:
 	def __init__(self):
-		self.fns = ['training_set', 'training_set_metadata', 'test_set_sample'] 
+		self.fns = ['training_set', 'training_set_metadata', 'test_set_sample', 'test_set_metadata'] 
 		
-		self.df, self.meta_df, self.test_df = read_multi(self.fns)
+		self.df, self.meta_df, self.test_df, self.test_meta = m.read_multi(self.fns)
 
-		self.test_objs = [obj for obj in self.df.groupby(by='object_id', as_index=False)] 
+		self.tr_objs = [obj for obj in self.df.groupby(by=m.ID, as_index=False)] 
+		self.te_objs = [obj for obj in self.df.groupby(by=m.ID, as_index=False)] 
 
+		self.merged = pd.merge(self.df, self.meta_df, on=m.ID)
+		self.test_merged = pd.merge(self.test_df, self.test_meta, on=m.ID)
 
-	def graph_object(self, index=0):
-		obj = self.obj[index]
+	def graph_object(self, df=0, index=0):
+
+		if df:
+			obj = self.tr_objs[index]
+		else:
+			obj = self.te_objs[index]
+
 		obj = obj[1]  # tuple -> df
-		colors = []
+
 		bands = obj['passband']
 
+		# TODO, port to pandas transforms/mapping for efficiency
+
+		colors = []
 		for band in bands:
 			colors.append(passbands[band])
 
 		plt_x = obj['mjd']
 		plt_y = obj['flux']
-		# want to color dots, according to passband
-		# going thru every row is most likely inefficient.
+
 		plt.scatter(plt_x, plt_y, c=colors, s=5)
 		plt.show()
 
 	def obj_data(self, index=0):
-		return self.objects[index]
+		# TODO instant concat with meta
+		full_line = self.matchup(obj_id)
+		return self.tr_[index]
+
+	def lookup(self, obj_id):
+		meta_data = self.meta_df.loc[self.meta_df['object_id'] == obj_id]
+		return meta_data
 
 
-def read_multi(fns):
-	dfs = []
-	for fn in fns:
-		dfs.append(pd.read_csv('./data/' + fn + '.csv'))
-	return dfs
+

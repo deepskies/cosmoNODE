@@ -10,6 +10,11 @@ Given that ODEs are commonly used for time series analysis, my hypothesis is tha
 https://colab.research.google.com/drive/1e9g_X_DRhREfIhSVqwXqPqTriWVPRVZc
 
 
+# TODOS
+	+ base index on 'mjd' column (time series indexing)
+
+	+ 
+
 
 
 
@@ -28,8 +33,19 @@ Time-of documentation:
 
 	+ the accuracy on the training set was [correct guesses: 9475 / total guesses: 11107] ~ 0.8531 %
 
-11:47 using matplotlib to interpret timeseries data
+11:47 AM using matplotlib to interpret timeseries data
 	 
 	 + plotting each object with flux/time and colored according to band
 
-	 + 
+12:00 PM 
+
+	+ journal meeting
+
+12:50
+	
+	+ minerva tour
+
+3:15 PM 
+	
+	+ class written for taking in data and merging.
+

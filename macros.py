@@ -1,4 +1,5 @@
 # simple macros so i can make KLEEN code
+import pandas as pd
 
 def read_multi(fns):
 	dfs = []

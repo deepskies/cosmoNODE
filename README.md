@@ -8,3 +8,16 @@ The goal is to see if there is any improvement in the classification accuracy us
 Given that ODEs are commonly used for time series analysis, my hypothesis is that there will be a measureable improvement.
 
 https://colab.research.google.com/drive/1e9g_X_DRhREfIhSVqwXqPqTriWVPRVZc
+
+
+
+
+
+Time-of documentation:
+6/26/19
+
+11:04 trained using anandijain/sip/gym-sip/regression.py on training_set.csv of LSST and tested on the test_set_sample.py
+	* the data was scaled -1 to 1 and the p-value for correct flux prediction was 0.1
+	* the inputs were all of the columns besides the flux label.
+	* this is most likey not proper, as flux_err for an input might not be kosher
+	* the accuracy on the training set was [correct guesses: 9475 / total guesses: 11107] ~ 0.8531 %

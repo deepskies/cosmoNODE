@@ -1,3 +1,8 @@
+# demo files from original NODE paper.
 /tdeq/
 
+# dont want to upload the whole LSST data 
+/data/
+
+# don't want to upload my API key
 kaggle.json

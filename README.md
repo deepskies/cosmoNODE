@@ -27,3 +27,9 @@ Time-of documentation:
 	+ this is most likey not proper, as flux_err for an input might not be kosher
 
 	+ the accuracy on the training set was [correct guesses: 9475 / total guesses: 11107] ~ 0.8531 %
+
+11:47 using matplotlib to interpret timeseries data
+	 
+	 + plotting each object with flux/time and colored according to band
+
+	 + 

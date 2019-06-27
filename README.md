@@ -16,14 +16,13 @@ https://colab.research.google.com/drive/1WUNbQV0g-k1wSRueQyuftZx6XKEr5OBx
 
 	2. write validation nets for testing against NODEs 
 
+		+ train/test splits on train set, since there are no labels on the test set.
+
 	3. documented jupyter notebook for presenting
 
 	4. fix pd.merge memory inefficiency with onsite concat 
 
 	5. base index on 'mjd' column (time series indexing)
-
-	+ 
-
 
 
 # Things that seem interesting but later:

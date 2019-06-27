@@ -15,22 +15,27 @@ class LSST(Dataset):
 		self.pad_len = self.demo.seq_max_len
 
 		self.items = self.demo.merged_objs
-		self.t_items = [torch.tensor(elt.values) for elt in self.items]
-		
+		# inefficient, want to create label list earlier 
+		self.labels = [elt.target.iloc[0] for elt in self.items]
+
+		self.raw_items = [item.drop(['object_id', 'target'], axis=1) for item in self.items]
+
+		self.t_items = [torch.tensor(elt.values) for elt in self.raw_items]
 		self.padded_items = torch.nn.utils.rnn.pad_sequence(self.t_items, batch_first=True)
 
 		self.train_len = len(self.items)
+		self.item = self.__getitem__(0)
+		self.input_shape = self.item.shape
+		self.output_shape = self.demo.output_size
 
 	def __getitem__(self, index):
 		# index is object_id
 
 		obj = self.padded_items[index]
-		target = obj.target.iloc[0]
+		target = self.labels[index]
 
 		# haven't rigorously checked that there aren't other columns that are linearly
 		# dependent with the target value
-
-		obj = obj.drop(['object_id', 'target'], axis=1)
 		
 		return (obj, target)
 
@@ -42,6 +47,3 @@ class LSST(Dataset):
 		# TODO
 		pass
 
-	def item_pad(self):
-		# for item in self.items:
-		pass

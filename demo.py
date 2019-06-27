@@ -50,6 +50,8 @@ class Demo:
 		self.input_size = len(self.merged.columns) - 2  # -2 for the obj id and target
 		self.output_size = len(self.merged['target'].unique())	
 
+		print('demo initialized\n')
+
 	def graph_object(self, df=0, index=0):
 
 		if df:

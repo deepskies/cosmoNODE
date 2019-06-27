@@ -75,3 +75,9 @@ Time-of documentation:
 		+ finished custom dataloader for pytorch
 
 		+ writing test net for torch (building up to NODE)
+
+	11:43 
+
+		+ fixed bugs with torch Dataset/Dataloader, padding finished
+
+			

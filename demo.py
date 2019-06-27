@@ -21,9 +21,15 @@ class Demo:
 		self.fns = ['training_set', 'training_set_metadata', 'test_set_sample', 'test_set_metadata'] 
 		
 		self.df, self.meta_df, self.test_df, self.test_meta = m.read_multi(self.fns)
+		
+		self.set_list = [self.df, self.meta_df, self.test_df, self.test_meta]
+
+		# fill in Na
 
 		self.tr_objs = [obj for obj in self.df.groupby(by=m.ID, as_index=False)] 
 		self.te_objs = [obj for obj in self.df.groupby(by=m.ID, as_index=False)] 
+
+		self.seq_max_len = self.df[m.ID].value_counts().max()
 
 		'''
 		was asserting that df1.size + df2.size == merged 
@@ -34,9 +40,16 @@ class Demo:
 
 		self.merged = pd.merge(self.df, self.meta_df, on=m.ID)
 		self.test_merged = pd.merge(self.test_df, self.test_meta, on=m.ID)
+		self.merged= pd.to_numeric(self.merged, errors='coerce').fillna(0).astype(np.int64)
+		self.test_merged= pd.to_numeric(self.test_merged, errors='coerce').fillna(0).astype(np.int64)
+
+		self.merged_objs = [obj[1] for obj in self.merged.groupby(by=m.ID, as_index=False)] 
+		self.test_merged_objs = [obj[1] for obj in self.merged.groupby(by=m.ID, as_index=False)] 
 
 		self.input_size = len(self.merged.columns) - 2  # -2 for the obj id and target
 		self.output_size = len(self.merged['target'].unique())
+
+		
 
 	def graph_object(self, df=0, index=0):
 

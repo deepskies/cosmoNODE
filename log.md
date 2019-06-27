@@ -59,5 +59,19 @@ Time-of documentation:
 
 		+ read thru Deep Skies guide, filled out timecard
 
-		
+	10:20 
 
+		+ transfered repo to /deepskies/ 
+
+		+ looking into dynamic shape methods:
+			1. pad input tensors to all the same shape (easy and less cool)
+				+ using tf.pad and finding the max num of rows for all objs
+
+
+			2. dynamic
+
+	11:00 
+
+		+ finished custom dataloader for pytorch
+
+		+ writing test net for torch (building up to NODE)

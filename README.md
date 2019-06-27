@@ -12,12 +12,20 @@ https://colab.research.google.com/drive/1e9g_X_DRhREfIhSVqwXqPqTriWVPRVZc
 https://colab.research.google.com/drive/1WUNbQV0g-k1wSRueQyuftZx6XKEr5OBx
 
 # TODO priority queue:
-	+ build NODE classification demo!!!
+	1. build NODE classification demo!!!
 
-	+ write validation nets for testing against NODEs 
+	2. write validation nets for testing against NODEs 
 
-	+ fix pd.merge inefficiency with onsite concat
+	3. documented jupyter notebook for presenting
 
-	+ base index on 'mjd' column (time series indexing)
+	4. fix pd.merge memory inefficiency with onsite concat 
+
+	5. base index on 'mjd' column (time series indexing)
 
 	+ 
+
+
+
+# Things that seem interesting but later:
+	
+	1. tf.distribute

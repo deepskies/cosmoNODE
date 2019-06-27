@@ -28,6 +28,8 @@ class LSST(Dataset):
 		self.input_shape = self.item.shape
 		self.output_shape = self.demo.output_size
 
+		print('torch LSST Dataset initialized\n')
+
 	def __getitem__(self, index):
 		# index is object_id
 

@@ -9,7 +9,3 @@ def read_multi(fns):
 	for fn in fns:
 		dfs.append(pd.read_csv('./data/' + fn + '.csv'))
 	return dfs
-
-
-def pad_tensor(tensor, length):
-    return torch.cat([tensor, tensor.new(length - tensor.size(0), * tensor.size()[1:]).zero_()])

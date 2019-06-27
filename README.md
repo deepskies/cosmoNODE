@@ -18,6 +18,8 @@ https://colab.research.google.com/drive/1WUNbQV0g-k1wSRueQyuftZx6XKEr5OBx
 
 		+ train/test splits on train set, since there are no labels on the test set.
 
+		+ chunk by passband to classify each object by individual band
+
 	3. documented jupyter notebook for presenting
 
 	4. fix pd.merge memory inefficiency with onsite concat 

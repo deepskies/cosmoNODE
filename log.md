@@ -3,7 +3,7 @@
 Time-of documentation:
 6/26/19
 
-	11:04 trained using anandijain/sip/gym-sip/regression.py neural network on training_set.csv of LSST and tested on the test_set_sample.py
+	11:04 AM trained using anandijain/sip/gym-sip/regression.py neural network on training_set.csv of LSST and tested on the test_set_sample.py
 		
 		+ the model is just linear 5 -> 20 -> 3 -> 8 -> 4 -> 1 (definitely not optimal, but wanted to just train on anything)
 		+ the data was scaled -1 to 1 and the p-value for correct flux prediction was 0.1
@@ -24,7 +24,7 @@ Time-of documentation:
 		
 		+ minerva tour
 
-	3:15 PM 
+	3:15 
 		
 		+ class written for taking in data and merging.
 
@@ -42,7 +42,7 @@ Time-of documentation:
 
 6/27/19
 
-	8:30 
+	8:30 AM
 		+ got files to upload to colab (the model is not working, reason: input shape is wrong. the model can't learn from a single flux value)
 		+ starting torch custom dataloader for NODE
 
@@ -80,4 +80,7 @@ Time-of documentation:
 
 		+ fixed bugs with torch Dataset/Dataloader, padding finished
 
-			
+	12:50 PM
+
+		+ simple mnist torch classifier modified to use LSST data
+

@@ -84,3 +84,14 @@ Time-of documentation:
 
 		+ simple mnist torch classifier modified to use LSST data
 
+	2:00 
+
+		+ lunch
+
+		+ shape debugging
+
+	4:00
+
+		+ working thru exponentially growing loss/nan outputs
+
+		+ added data scaling using sklearn.preprocessing.min_max 

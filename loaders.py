@@ -25,8 +25,9 @@ class LSST(Dataset):
 
 		self.train_len = len(self.items)
 		self.item = self.__getitem__(0)
-		self.input_shape = self.item.shape
-		self.output_shape = self.demo.output_size
+
+		self.input_shape = self.item[0].shape
+		self.output_shape = self.demo.output_size  # type() == int
 
 		print('torch LSST Dataset initialized\n')
 

@@ -10,35 +10,62 @@ import torch.optim as optim
 
 import matplotlib.pyplot as plt
 
-import loaders
+import loaders as l
 
 # net defn
 # conv might not be the best, i want to see conv vs linear vs lstm 
-class Net(nn.Module):
-    def __init__(self, output_size):
-        super(Net, self).__init__()
-        self.conv1 = nn.Conv2d(1, 20, 5, 1)
-        self.conv2 = nn.Conv2d(20, 50, 5, 1)
-        self.fc1 = nn.Linear(4*4*50, 500)
-        self.fc2 = nn.Linear(500, 10)
+# class Net(nn.Module):
+#     def __init__(self, output_size):
+#         super(Net, self).__init__()
+#         self.conv1 = nn.Conv2d(1, 20, 5, 1)
+#         self.conv2 = nn.Conv2d(20, 50, 5, 1)
+#         self.fc1 = nn.Linear(4*4*50, 500)
+#         self.fc2 = nn.Linear(500, 10)
 
-    def forward(self, x):
-        x = F.relu(self.conv1(x))
-        x = F.max_pool2d(x, 2, 2)
-        x = F.relu(self.conv2(x))
-        x = F.max_pool2d(x, 2, 2)
-        x = x.view(-1, 4*4*50)
-        x = F.relu(self.fc1(x))
-        x = self.fc2(x)
-        return F.log_softmax(x, dim=1)
+#     def forward(self, x):
+#         x = F.relu(self.conv1(x))
+#         x = F.max_pool2d(x, 2, 2)
+#         x = F.relu(self.conv2(x))
+#         x = F.max_pool2d(x, 2, 2)
+#         x = x.view(-1, 4*4*50)
+#         x = F.relu(self.fc1(x))
+#         x = self.fc2(x)
+#         return F.log_softmax(x, dim=1)
+
+class Net(nn.Module):
+	def __init__(self, input_size, output_size):
+		super(Net, self).__init__()
+		self.l1 = nn.Linear(input_size * output_size, 100)
+		self.l2 = nn.Linear(100, 20)
+		self.l3 = nn.Linear(20, 1)
+
+	def forward(self, x):
+		x = self.l1(x)
+		x = self.l2(x)
+		x = self.l3(x)
+		return x
+
     
-def train(args, model, device, train_loader, optimizer, epoch):
+def train(args, model, device, train_loader, optimizer, epoch, criterion):
+
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
+        data = data.view(-1, 5280)
+
+        # print('data: {}'.format(data))
+        # print('target: {}'.format(target))
+
         optimizer.zero_grad()
+
         output = model(data)
-        loss = F.nll_loss(output, target)
+
+        # print('output: {}'.format(output))
+
+        loss = criterion(output, target)
+        
+        # print('loss: {}'.format(loss.detach()))
+
         loss.backward()
         optimizer.step()
         if batch_idx % args.log_interval == 0:
@@ -79,7 +106,7 @@ def main():
 	                    help='learning rate (default: 0.01)')
 	parser.add_argument('--momentum', type=float, default=0.5, metavar='M',
 	                    help='SGD momentum (default: 0.5)')
-	parser.add_argument('--no-cuda', action='store_true', default=False,
+	parser.add_argument('--no-cuda', action='store_true', default=True,
 	                    help='disables CUDA training')
 	parser.add_argument('--seed', type=int, default=1, metavar='S',
 	                    help='random seed (default: 1)')
@@ -95,18 +122,24 @@ def main():
 
 	device = torch.device("cuda" if use_cuda else "cpu")
 
-	train = loaders.LSST()
-	train_loader = DataLoader(train)
+	train_set = l.LSST()
+	train_loader = DataLoader(train_set)
 
-	input_size = train.input_size
-	output_size = train.output_size
+	input_size = train_set.input_shape
+	output_size = train_set.output_shape + 1
 
-	net = Net(output_size)
-	model = Net().to(device)
+	print('input_size [0]: {}'.format(input_size))
+	print('output_size [0]: {}'.format(output_size))
+
+	criterion = nn.MSELoss()
+
+	model = Net(352, output_size).to(device)
+	print(model)
+	
 	optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
 
 	for epoch in range(1, args.epochs + 1):
-		train(args, model, device, train_loader, optimizer, epoch)
+		train(args, model, device, train_loader, optimizer, epoch, criterion)
 		test(args, model, device, test_loader)
 
 

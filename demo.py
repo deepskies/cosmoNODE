@@ -79,6 +79,3 @@ class Demo:
 		return meta_data
 
 
-
-
-

@@ -14,12 +14,21 @@ class LSST(Dataset):
 		self.demo_len = len(df)
 
 		self.items = self.demo.merged_objs
-		
-		self.	
+
+		self.
 
 	def __getitem__(self, index):
 		# index is object_id
-		pass
+
+		obj = self.items[index]
+		target = obj.target[0]
+
+		# haven't rigorously checked that there aren't other columns that are linearly
+		# dependent with the target value
+		
+		obj = obj.drop(['object_id', 'target'], axis=1)
+		
+		return (obj, target)
 
 	def __len__(self):
 		return self.df_len

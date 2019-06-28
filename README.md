@@ -7,17 +7,28 @@ The goal is to see if there is any improvement in the classification accuracy us
 
 Given that ODEs are commonly used for time series analysis, my hypothesis is that there will be a measureable improvement.
 
-https://colab.research.google.com/drive/1e9g_X_DRhREfIhSVqwXqPqTriWVPRVZc
+https://drive.google.com/open?id=1dDKOfZrUGG_9MTxTWis1rhZ4L-IAFqjq8vEfahfMiVs
 
-https://colab.research.google.com/drive/1WUNbQV0g-k1wSRueQyuftZx6XKEr5OBx
+# colab notebooks
+https://drive.google.com/open?id=1twyeXpB2EeFEyGj7Y61C9KN7vSuHcUv0 
+
 
 # TODO priority queue:
-	+ build NODE classification demo!!!
+	1. build NODE classification demo!!!
 
-	+ write validation nets for testing against NODEs 
+	2. write validation nets for testing against NODEs 
 
-	+ fix pd.merge inefficiency with onsite concat
+		+ train/test splits on train set, since there are no labels on the test set.
 
-	+ base index on 'mjd' column (time series indexing)
+		+ chunk by passband to classify each object by individual band
 
-	+ 
+	3. documented jupyter notebook for presenting
+
+	4. fix pd.merge memory inefficiency with onsite concat 
+
+	5. base index on 'mjd' column (time series indexing)
+
+
+# Things that seem interesting but later:
+	
+	1. tf.distribute

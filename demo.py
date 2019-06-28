@@ -2,6 +2,8 @@ import scipy as sci
 import pandas as pd
 import numpy as np
 
+from sklearn import preprocessing
+
 import tensorflow as tf
 
 import matplotlib.pyplot as plt
@@ -40,16 +42,24 @@ class Demo:
 
 		self.merged = pd.merge(self.df, self.meta_df, on=m.ID)
 		self.test_merged = pd.merge(self.test_df, self.test_meta, on=m.ID)
-		self.merged= pd.to_numeric(self.merged, errors='coerce').fillna(0).astype(np.int64)
-		self.test_merged= pd.to_numeric(self.test_merged, errors='coerce').fillna(0).astype(np.int64)
+
+		self.merged= self.merged.fillna(0).astype(np.float32)
+		self.test_merged= self.test_merged.fillna(0).astype(np.float32)
+
+		self.merged = m.scale_df(self.merged)
+		self.test_merged = m.scale_df(self.test_merged)
 
 		self.merged_objs = [obj[1] for obj in self.merged.groupby(by=m.ID, as_index=False)] 
 		self.test_merged_objs = [obj[1] for obj in self.merged.groupby(by=m.ID, as_index=False)] 
 
 		self.input_size = len(self.merged.columns) - 2  # -2 for the obj id and target
-		self.output_size = len(self.merged['target'].unique())
 
-		
+		self.target_classes = self.merged['target'].unique()
+		self.target_classes.sort()
+
+		self.output_size = len(self.target_classes)	
+
+		print('demo initialized\n')
 
 	def graph_object(self, df=0, index=0):
 

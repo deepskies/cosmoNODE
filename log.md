@@ -3,7 +3,7 @@
 Time-of documentation:
 6/26/19
 
-	11:04 trained using anandijain/sip/gym-sip/regression.py neural network on training_set.csv of LSST and tested on the test_set_sample.py
+	11:04 AM trained using anandijain/sip/gym-sip/regression.py neural network on training_set.csv of LSST and tested on the test_set_sample.py
 		
 		+ the model is just linear 5 -> 20 -> 3 -> 8 -> 4 -> 1 (definitely not optimal, but wanted to just train on anything)
 		+ the data was scaled -1 to 1 and the p-value for correct flux prediction was 0.1
@@ -24,7 +24,7 @@ Time-of documentation:
 		
 		+ minerva tour
 
-	3:15 PM 
+	3:15 
 		
 		+ class written for taking in data and merging.
 
@@ -42,7 +42,7 @@ Time-of documentation:
 
 6/27/19
 
-	8:30 
+	8:30 AM
 		+ got files to upload to colab (the model is not working, reason: input shape is wrong. the model can't learn from a single flux value)
 		+ starting torch custom dataloader for NODE
 
@@ -59,5 +59,59 @@ Time-of documentation:
 
 		+ read thru Deep Skies guide, filled out timecard
 
-		
+	10:20 
 
+		+ transfered repo to /deepskies/ 
+
+		+ looking into dynamic shape methods:
+			1. pad input tensors to all the same shape (easy and less cool)
+				+ using tf.pad and finding the max num of rows for all objs
+
+
+			2. dynamic
+
+	11:00 
+
+		+ finished custom dataloader for pytorch
+
+		+ writing test net for torch (building up to NODE)
+
+	11:43 
+
+		+ fixed bugs with torch Dataset/Dataloader, padding finished
+
+	12:50 PM
+
+		+ simple mnist torch classifier modified to use LSST data
+
+	2:00 
+
+		+ lunch
+
+		+ shape debugging
+
+	4:00
+
+		+ working thru exponentially growing loss/nan outputs
+
+		+ added data scaling using sklearn.preprocessing.min_max 
+
+	5:00 
+
+		+ general discussions on RL strategies and noise w Yunchong and Callista 
+
+6/28/19
+
+	+ 8:00 AM
+
+		+ setting up zoom, making a few edits on DS guide, overleaf
+
+		+ added resources to guide for RL 
+
+		+ working on filling out the outline and goals of project as stated in the guide
+
+			- updated google doc to fit template
+
+	+ 10:00 
+
+		+ cosmoNODE now meets the minimum requirements for a deepskies project (i think)

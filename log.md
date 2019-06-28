@@ -111,3 +111,7 @@ Time-of documentation:
 		+ working on filling out the outline and goals of project as stated in the guide
 
 			- updated google doc to fit template
+
+	+ 10:00 
+
+		+ cosmoNODE now meets the minimum requirements for a deepskies project (i think)

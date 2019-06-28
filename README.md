@@ -7,9 +7,11 @@ The goal is to see if there is any improvement in the classification accuracy us
 
 Given that ODEs are commonly used for time series analysis, my hypothesis is that there will be a measureable improvement.
 
-https://colab.research.google.com/drive/1e9g_X_DRhREfIhSVqwXqPqTriWVPRVZc
+https://drive.google.com/open?id=1dDKOfZrUGG_9MTxTWis1rhZ4L-IAFqjq8vEfahfMiVs
 
-https://colab.research.google.com/drive/1WUNbQV0g-k1wSRueQyuftZx6XKEr5OBx
+# colab notebooks
+https://drive.google.com/open?id=1twyeXpB2EeFEyGj7Y61C9KN7vSuHcUv0 
+
 
 # TODO priority queue:
 	1. build NODE classification demo!!!

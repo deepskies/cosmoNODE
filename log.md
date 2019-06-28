@@ -95,3 +95,19 @@ Time-of documentation:
 		+ working thru exponentially growing loss/nan outputs
 
 		+ added data scaling using sklearn.preprocessing.min_max 
+
+	5:00 
+
+		+ general discussions on RL strategies and noise w Yunchong and Callista 
+
+6/28/19
+
+	+ 8:00 AM
+
+		+ setting up zoom, making a few edits on DS guide, overleaf
+
+		+ added resources to guide for RL 
+
+		+ working on filling out the outline and goals of project as stated in the guide
+
+			- updated google doc to fit template

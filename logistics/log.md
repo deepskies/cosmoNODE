@@ -1,5 +1,3 @@
-
-
 Time-of documentation:
 6/26/19
 
@@ -128,12 +126,20 @@ Time-of documentation:
 
 		+ found a keras implementation of ODENET
 
-	+ 11:00 AM 
+	+ 11:00  
 
 		+ com meeting
 
-	+ 12:20 
+	+ 12:20 PM
 
 		+ starting to grasp how the ode is working on images, 
 
 		+ (n, 1, 28, 28) -> (n, 64, 26, 26) -> (n, 64, 13, 13)
+
+7/2/19
+
+	+ 10:15
+
+		+ ditching 2D non timeseries example for mnist to actually make headway on timeseries classification 
+
+		+ graph specific bands

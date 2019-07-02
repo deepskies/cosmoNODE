@@ -72,8 +72,6 @@ class Demo:
 
 	def graph_object(self, index, passband=None, df=1):
 
-
-
 		if df:
 			obj = self.tr_objs[index]
 		else:

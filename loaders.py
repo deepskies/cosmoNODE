@@ -48,5 +48,7 @@ class LSST(Dataset):
 	def join(self):
 		# given obj id, gets light curve data and meta data
 		# TODO
+		# meta = self.demo.
+
 		pass
 

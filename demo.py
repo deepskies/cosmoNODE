@@ -31,6 +31,9 @@ class Demo:
 		self.tr_objs = [obj for obj in self.df.groupby(by=m.ID, as_index=False)] 
 		self.te_objs = [obj for obj in self.df.groupby(by=m.ID, as_index=False)] 
 
+		self.tr_objs_pb = [obj for obj in self.df.groupby(by=[m.ID, 'passband'], as_index=False)] 
+		self.te_objs_pb = [obj for obj in self.df.groupby(by=[m.ID, 'passband'], as_index=False)] 
+
 		self.seq_max_len = self.df[m.ID].value_counts().max()
 
 		'''
@@ -46,11 +49,17 @@ class Demo:
 		self.merged= self.merged.fillna(0).astype(np.float32)
 		self.test_merged= self.test_merged.fillna(0).astype(np.float32)
 
+		self.unscaled_objs = [obj[1] for obj in self.merged.groupby(by=m.ID, as_index=False)] 
+		self.test_unscaled_objs = [obj[1] for obj in self.merged.groupby(by=m.ID, as_index=False)] 
+
 		self.merged = m.scale_df(self.merged)
 		self.test_merged = m.scale_df(self.test_merged)
 
+
 		self.merged_objs = [obj[1] for obj in self.merged.groupby(by=m.ID, as_index=False)] 
 		self.test_merged_objs = [obj[1] for obj in self.merged.groupby(by=m.ID, as_index=False)] 
+
+		# self.merged_pbs = [obj[1] for ]
 
 		self.input_size = len(self.merged.columns) - 2  # -2 for the obj id and target
 
@@ -61,7 +70,7 @@ class Demo:
 
 		print('demo initialized\n')
 
-	def graph_object(self, df=0, index=0):
+	def graph_object(self, df=0, index=0, passband=None):
 
 		if df:
 			obj = self.tr_objs[index]

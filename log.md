@@ -115,3 +115,25 @@ Time-of documentation:
 	+ 10:00 
 
 		+ cosmoNODE now meets the minimum requirements for a deepskies project (i think)
+
+
+7/1/19
+	
+	+ 9:47 AM
+
+		+ reading through torchdiffeq to understand how the mnist model works,
+			- because im still not positive how the one dimentional ODE is used for 2 dimensional inputs, like images
+
+		+ i am realizing that i need to know more about ODEs 
+
+		+ found a keras implementation of ODENET
+
+	+ 11:00 AM 
+
+		+ com meeting
+
+	+ 12:20 
+
+		+ starting to grasp how the ode is working on images, 
+
+		+ (n, 1, 28, 28) -> (n, 64, 26, 26) -> (n, 64, 13, 13)

@@ -16,15 +16,17 @@ import loaders as l
 class Net(nn.Module):
 	def __init__(self, input_size, output_size):
 		super(Net, self).__init__()
-		self.l1 = nn.Linear(input_size * output_size, 100)
-		self.l2 = nn.Linear(100, 20)
-		self.l3 = nn.Linear(20, 14)
-		self.sm = nn.Softmax()
+		self.l1 = nn.Linear(input_size * output_size, 1000)
+		self.l2 = nn.Linear(1000, 100)
+		self.l3 = nn.Linear(100, 14)
+		self.sm = nn.Softmax(dim=0)
 
 	def forward(self, x):
 		x = self.l1(x)
 		x = F.relu(self.l2(x))
-		x = self.sm(self.l3(x))
+		# x = self.sm(self.l3(x))
+		x = self.l3(x)
+		x = self.sm(x)
 		return x
 
     
@@ -34,6 +36,7 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion):
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
         data = data.flatten()
+        target = target.flatten()
 
         # print('data: {}'.format(data))
         # print('target: {}'.format(target))
@@ -54,6 +57,8 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion):
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(data), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
+            print('model out: {}'.format(output))
+            print('target: {}'.format(target))
 
 
 def test(args, model, device, test_loader):
@@ -75,14 +80,14 @@ def test(args, model, device, test_loader):
         100. * correct / len(test_loader.dataset)))
 
 
-def main():
+def main(train_set=l.LSST()):
 	# Training settings
 	parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
 	parser.add_argument('--batch-size', type=int, default=64, metavar='N',
 	                    help='input batch size for training (default: 64)')
 	parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
 	                    help='input batch size for testing (default: 1000)')
-	parser.add_argument('--epochs', type=int, default=10, metavar='N',
+	parser.add_argument('--epochs', type=int, default=1, metavar='N',
 	                    help='number of epochs to train (default: 10)')
 	parser.add_argument('--lr', type=float, default=0.01, metavar='LR',
 	                    help='learning rate (default: 0.01)')
@@ -104,7 +109,7 @@ def main():
 
 	device = torch.device("cuda" if use_cuda else "cpu")
 
-	train_set = l.LSST()
+	# train_set = l.LSST()
 	train_loader = DataLoader(train_set)
 
 	input_size = train_set.input_shape
@@ -122,7 +127,7 @@ def main():
 
 	for epoch in range(1, args.epochs + 1):
 		train(args, model, device, train_loader, optimizer, epoch, criterion)
-		test(args, model, device, test_loader)
+		# test(args, model, device, test_loader)
 
 
 if __name__ == '__main__':

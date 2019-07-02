@@ -13,7 +13,7 @@ class LSST(Dataset):
 		
 		self.data_class = data_class
 
-		self.pad_len = self.data_class.seq_max_len
+		# self.pad_len = self.data_class.seq_max_len
 
 		# self.items = self.data_class.merged_objs
 		self.items = self.data_class.unscaled_objs
@@ -32,7 +32,7 @@ class LSST(Dataset):
 		self.item = self.__getitem__(0)
 
 		self.input_shape = self.item[0].shape
-		self.output_shape = self.data_class.output_size  # type() == int
+		self.output_shape = len(self.data_class.class_list)  # type() == torch.Size(14)
 
 		print('torch LSST Dataset initialized\n')
 

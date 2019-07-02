@@ -5,13 +5,15 @@
 	Agenda:
 
 		+ jup notebook for past week results demonstration
-		
+
 		+ linear model 
 
-		+ rudimentary ODE model
+		+ CNN 
 
 
 	TODO: 
 
+		+ meet minimum requirements for kaggle
 
+		+ ODE model
 	

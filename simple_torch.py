@@ -18,12 +18,13 @@ class Net(nn.Module):
 		super(Net, self).__init__()
 		self.l1 = nn.Linear(input_size * output_size, 100)
 		self.l2 = nn.Linear(100, 20)
-		self.l3 = nn.Linear(20, 1)
+		self.l3 = nn.Linear(20, 14)
+		self.sm = nn.Softmax()
 
 	def forward(self, x):
 		x = self.l1(x)
-		x = self.l2(x)
-		x = self.l3(x)
+		x = F.relu(self.l2(x))
+		x = self.sm(self.l3(x))
 		return x
 
     
@@ -32,7 +33,7 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion):
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
-        data = data.view(-1, 5280)
+        data = data.flatten()
 
         # print('data: {}'.format(data))
         # print('target: {}'.format(target))

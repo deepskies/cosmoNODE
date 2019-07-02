@@ -34,6 +34,7 @@ class Demo:
 		self.tr_objs_pb = [obj for obj in self.df.groupby(by=[m.ID, 'passband'], as_index=False)] 
 		self.te_objs_pb = [obj for obj in self.df.groupby(by=[m.ID, 'passband'], as_index=False)] 
 
+
 		self.seq_max_len = self.df[m.ID].value_counts().max()
 
 		'''
@@ -49,22 +50,26 @@ class Demo:
 		self.merged= self.merged.fillna(0).astype(np.float32)
 		self.test_merged= self.test_merged.fillna(0).astype(np.float32)
 
-		self.unscaled_objs = [obj[1] for obj in self.merged.groupby(by=m.ID, as_index=False)] 
-		self.test_unscaled_obj = [obj[1] for obj in self.merged.groupby(by=m.ID, as_index=False)] 
+		self.grouped = self.merged.groupby(by=m.ID, as_index=False)
+		self.test_grouped = self.test_merged.groupby(by=m.ID, as_index=False)
+
+		self.unscaled_objs = [obj[1] for obj in self.grouped]
+		self.test_unscaled_obj = [obj[1] for obj in self.test_grouped] 
 
 		self.merged = m.scale_df(self.merged)
 		self.test_merged = m.scale_df(self.test_merged)
 
-
-		self.merged_objs = [obj[1] for obj in self.merged.groupby(by=m.ID, as_index=False)] 
-		self.test_merged_objs = [obj[1] for obj in self.merged.groupby(by=m.ID, as_index=False)] 
+		self.merged_objs = [obj[1] for obj in self.grouped] 
+		self.test_merged_objs = [obj[1] for obj in self.test_grouped] 
 
 		# self.merged_pbs = [obj[1] for ]
 
 		self.input_size = len(self.merged.columns) - 2  # -2 for the obj id and target
 
-		self.target_classes = self.merged['target'].unique()
+		self.target_classes = self.meta_df['target'].unique()
 		self.target_classes.sort()
+
+		self.class_list = self.target_classes.tolist()
 
 		self.output_size = len(self.target_classes)	
 
@@ -107,4 +112,27 @@ class Demo:
 		meta_data = self.meta_df.loc[self.meta_df['object_id'] == obj_id]
 		return meta_data
 
+
+class Quick:
+	def __init__(self):
+		# doesn't read the absurdly large test set sample
+
+		self.fns = ['training_set', 'training_set_metadata']
+		self.df, self.meta_df = m.read_multi(self.fns)
+
+		self.df_grouped = self.df.groupby(by=m.ID, as_index=False)
+
+		self.target_classes = self.meta_df['target'].unique()
+		self.target_classes.sort()
+
+		self.class_list = self.target_classes.tolist()
+
+		self.merged = pd.merge(self.df, self.meta_df, on=m.ID)
+		self.merged= self.merged.fillna(0).astype(np.float32)
+
+		self.grouped = self.merged.groupby(by=m.ID, as_index=False)
+
+		# self.grouped = self.merged.groupby(by=[m.ID, 'passband'], as_index=False)
+
+		self.unscaled_objs = [obj[1] for obj in self.grouped]  	
 

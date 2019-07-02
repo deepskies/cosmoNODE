@@ -10,12 +10,12 @@ import matplotlib.pyplot as plt
 
 import macros as m
 
-passbands = {0 : 'r',
-			 1 : 'g',
-			 2 : 'b',
-			 3 : 'c',
-			 4 : 'm',
-			 5 : 'y'} 
+band_color_map = {0 : 'r',
+				 1 : 'g',
+				 2 : 'b',
+				 3 : 'c',
+				 4 : 'm',
+				 5 : 'y'} 
 
 
 class Demo:
@@ -50,7 +50,7 @@ class Demo:
 		self.test_merged= self.test_merged.fillna(0).astype(np.float32)
 
 		self.unscaled_objs = [obj[1] for obj in self.merged.groupby(by=m.ID, as_index=False)] 
-		self.test_unscaled_objs = [obj[1] for obj in self.merged.groupby(by=m.ID, as_index=False)] 
+		self.test_unscaled_obj = [obj[1] for obj in self.merged.groupby(by=m.ID, as_index=False)] 
 
 		self.merged = m.scale_df(self.merged)
 		self.test_merged = m.scale_df(self.test_merged)
@@ -70,7 +70,9 @@ class Demo:
 
 		print('demo initialized\n')
 
-	def graph_object(self, df=0, index=0, passband=None):
+	def graph_object(self, index, passband=None, df=1):
+
+
 
 		if df:
 			obj = self.tr_objs[index]
@@ -79,13 +81,23 @@ class Demo:
 
 		obj = obj[1]  # tuple -> df
 
-		bands = obj['passband']
+		if passband is None:
+			# use all bands in graph
+			pass
+		else:
+			# passband is type list or None
+			obj = obj.loc[obj['passband'].isin(passband)]  # use only data from a given band
 
+
+		bands = obj['passband']
+		
 		# TODO, port to pandas transforms/mapping for efficiency
 
+		
 		colors = []
 		for band in bands:
-			colors.append(passbands[band])
+			colors.append(band_color_map[band])
+
 
 		plt_x = obj['mjd']
 		plt_y = obj['flux']

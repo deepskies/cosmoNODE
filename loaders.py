@@ -3,6 +3,8 @@ import numpy as np
 
 import torch
 from torch.utils.data import Dataset
+from sklearn.model_selection import train_test_split
+
 
 import demo as d
 import macros as m
@@ -63,16 +65,40 @@ class LSST(Dataset):
 
 		pass
 
-class FastLoader(Dataset):
+class FluxLoader(Dataset):
 	def __init__(self):
-		self.data_class = d.Quick()
-		self.items = self.data_class.unscaled_objs
+
+		full_df = pd.read_csv('./data/training_set.csv')
+		
+		self.split_pct = 0.7
+
+		
+		self.df = full_df[['object_id', 'mjd', 'flux']]
+		
+		self.items = self.df.groupby(by='object_id', as_index=False)
+		self.items = [item[1].drop(m.ID, axis=1) for item in self.items]
+
+		self.item = self.items[0]
+		print(self.item)
+
+		self.t_items = [torch.tensor(item.values) for item in self.items]
+
+		self.padded_items = torch.nn.utils.rnn.pad_sequence(self.t_items, batch_first=True)
+
+
+		print(self.padded_items[0])
 
 		self.train_len = len(self.items)
 	def __getitem__(self, index):
-
-		pass
+		obj = self.padded_items[index]
+		times = obj[:, 0]
+		fluxes = obj[:, 1]
+		return (times, fluxes)
 
 	def __len__(self):
 		pass
+
+if __name__ == '__main__':
+	f = FluxLoader()
+
 

@@ -77,10 +77,19 @@ class ODEFunc(nn.Module):
         return self.net(y**3)
 
 
+def prep():
+    full_df = pd.read_csv('./data/training_set.csv')
+    df = full_df[['object_id', 'mjd', 'flux']]
+    objs = df.groupby(by='object_id', as_index=False)
+    obj_list = [obj[1] for obj in objs]
+    print(len(obj_list))
+    return obj_list
 
 if __name__ == '__main__':
 
     ii = 0
+
+    objs = prep()
 
     func = ODEFunc()
     optimizer = optim.RMSprop(func.parameters(), lr=1e-3)

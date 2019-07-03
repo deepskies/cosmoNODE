@@ -138,7 +138,7 @@ Time-of documentation:
 
 7/2/19
 
-	+ 10:15
+	+ 10:15 AM
 
 		+ ditching 2D non timeseries example for mnist to actually make headway on timeseries classification 
 
@@ -147,4 +147,19 @@ Time-of documentation:
 		+ linear model in torch trained 
 			- found that, since the value count distribution of targets is unequal, the model learns to just pick the most common class
 
-			
+
+	+ 3:00 - 5:00 PM
+		RL and NODE meetings. decision to focus on 1D time for light curve prediction (NO CLASSIFICATION YET)
+
+7/3/19
+	
+	+ 9:00 AM 
+		+ built torch dataloader for the task below
+
+		+ reading through ode_demo and repurposing cosmoNODE/ode_demo.py to handle light curve data
+
+	+ 2:40 PM
+
+		+ ode_flux almost ready for testing, last leg of debugging and tensor shape fitting
+
+		+ have a meeting at 3, wouldn't be able to finish, cleaned repository 

@@ -39,14 +39,13 @@ item = flux_loader.__getitem__(20)
 t = item[0]
 
 true_y = item[1]
-
 true_y0 = true_y[0]
 
 def get_batch(itr):
     y_cutoff = args.batch_size * itr
-    y_lower_cutoff = cutoff - args.batch_size
+    y_lower_cutoff = y_cutoff - args.batch_size
 
-    s = [i for i in range(y_lower_cutoff, y_cutoff)]    
+    s = torch.tensor([i for i in range(y_lower_cutoff, y_cutoff)])
 
     batch_y0 = true_y[y_lower_cutoff:y_cutoff]  # read from dataframe
     

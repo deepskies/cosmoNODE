@@ -2,16 +2,12 @@ import os
 import argparse
 import logging
 import time
-
 import numpy as np
-
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
-
-import loaders as l
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--network', type=str, choices=['resnet', 'odenet'], default='odenet')
@@ -279,8 +275,6 @@ def get_logger(logpath, filepath, package_files=[], displaying=True, saving=True
 
 
 if __name__ == '__main__':
-
-    # train_
 
     makedirs(args.save)
     logger = get_logger(logpath=os.path.join(args.save, 'logs'), filepath=os.path.abspath(__file__))

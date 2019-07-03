@@ -1,5 +1,3 @@
-
-
 Time-of documentation:
 6/26/19
 
@@ -115,3 +113,38 @@ Time-of documentation:
 	+ 10:00 
 
 		+ cosmoNODE now meets the minimum requirements for a deepskies project (i think)
+
+
+7/1/19
+	
+	+ 9:47 AM
+
+		+ reading through torchdiffeq to understand how the mnist model works,
+			- because im still not positive how the one dimentional ODE is used for 2 dimensional inputs, like images
+
+		+ i am realizing that i need to know more about ODEs 
+
+		+ found a keras implementation of ODENET
+
+	+ 11:00  
+
+		+ com meeting
+
+	+ 12:20 PM
+
+		+ starting to grasp how the ode is working on images, 
+
+		+ (n, 1, 28, 28) -> (n, 64, 26, 26) -> (n, 64, 13, 13)
+
+7/2/19
+
+	+ 10:15
+
+		+ ditching 2D non timeseries example for mnist to actually make headway on timeseries classification 
+
+		+ graph specific bands working
+
+		+ linear model in torch trained 
+			- found that, since the value count distribution of targets is unequal, the model learns to just pick the most common class
+
+			

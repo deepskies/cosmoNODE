@@ -75,39 +75,6 @@ class Demo:
 
 		print('demo initialized\n')
 
-	def graph_object(self, index, passband=None, df=1):
-
-		if df:
-			obj = self.tr_objs[index]
-		else:
-			obj = self.te_objs[index]
-
-		obj = obj[1]  # tuple -> df
-
-		if passband is None:
-			# use all bands in graph
-			pass
-		else:
-			# passband is type list or None
-			obj = obj.loc[obj['passband'].isin(passband)]  # use only data from a given band
-
-
-		bands = obj['passband']
-		
-		# TODO, port to pandas transforms/mapping for efficiency
-
-		
-		colors = []
-		for band in bands:
-			colors.append(band_color_map[band])
-
-
-		plt_x = obj['mjd']
-		plt_y = obj['flux']
-
-		plt.scatter(plt_x, plt_y, c=colors, s=5)
-		plt.show()
-
 	def lookup(self, obj_id):
 		meta_data = self.meta_df.loc[self.meta_df['object_id'] == obj_id]
 		return meta_data
@@ -134,5 +101,36 @@ class Quick:
 
 		# self.grouped = self.merged.groupby(by=[m.ID, 'passband'], as_index=False)
 
-		self.unscaled_objs = [obj[1] for obj in self.grouped]  	
+		self.unscaled_objs = [obj[1] for obj in self.grouped]
 
+	def graph_test(self):
+		graph_object(self.unscaled_objs, 234)
+
+
+def graph_object(self, df_list, index, passband=None, df=1):
+
+	obj = df_list[index]
+
+	obj = obj[1]  # tuple -> df
+
+	if passband is None:
+		# use all bands in graph
+		pass
+	else:
+		# passband is type list or None
+		obj = obj.loc[obj['passband'].isin(passband)]  # use only data from a given band
+
+
+	bands = obj['passband']
+	
+	# TODO, port to pandas transforms/mapping for efficiency
+
+	colors = []
+	for band in bands:
+		colors.append(band_color_map[band])
+
+	plt_x = obj['mjd']
+	plt_y = obj['flux']
+
+	plt.scatter(plt_x, plt_y, c=colors, s=5)
+	plt.show()

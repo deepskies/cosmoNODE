@@ -26,7 +26,7 @@ else:
 
 device = torch.device('cuda:' + str(args.gpu) if torch.cuda.is_available() else 'cpu')
 
-true_y0 = torch.tensor([[2., 0.]])  # shape (1, 13)
+true_y0 = torch.tensor([[2., 0.]]) 
 
 t = torch.linspace(0., 25., args.data_size) # objects times 
 

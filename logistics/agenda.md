@@ -17,3 +17,9 @@
 
 		+ ODE model
 	
+		+ fake data (sine, poisson)
+
+		+ ask on slack 
+
+		+ start w just flux for ode
+

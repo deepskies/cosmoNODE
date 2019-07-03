@@ -142,4 +142,9 @@ Time-of documentation:
 
 		+ ditching 2D non timeseries example for mnist to actually make headway on timeseries classification 
 
-		+ graph specific bands
+		+ graph specific bands working
+
+		+ linear model in torch trained 
+			- found that, since the value count distribution of targets is unequal, the model learns to just pick the most common class
+
+			

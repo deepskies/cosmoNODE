@@ -12,10 +12,39 @@ import matplotlib.pyplot as plt
 
 import macros as m
 
+class Quick:
+	def __init__(self, cols=[m.ID, 'mjd', 'flux']):
+		# doesn't read the absurdly large test set sample
+
+		self.fns = ['training_set', 'training_set_metadata']
+		self.df, self.meta_df = m.read_multi(self.fns)
+
+
+		self.df = self.df[cols]
+
+		self.df_grouped = self.df.groupby(by=m.ID, as_index=False)
+
+		# self.target_classes = self.meta_df['target'].unique()
+		# self.target_classes.sort()
+
+		# self.class_list = self.target_classes.tolist()
+
+		# self.merged = pd.merge(self.df, self.meta_df, on=m.ID)
+		# self.merged= self.merged.fillna(0).astype(np.float32)
+
+		# self.grouped = self.merged.groupby(by=m.ID, as_index=False)
+
+		# self.grouped = self.merged.groupby(by=[m.ID, 'passband'], as_index=False)
+
+		# self.unscaled_objs = [obj[1] for obj in self.grouped]
+
+	def graph_test(self):
+		graph_object(self.unscaled_objs, 234)
+
 
 # pytorch loader
 class LSST(Dataset):
-	def __init__(self, data_class=d.Quick()):
+	def __init__(self, data_class=Quick()):
 		
 		self.data_class = data_class
 
@@ -98,7 +127,7 @@ class FluxLoader(Dataset):
 		obj = self.padded_items[index]
 		times = obj[:, 0]
 		fluxes = obj[:, 1]
-		return (times, fluxes)  # (t, y)
+		return (times.double(), fluxes.double())  # (t, y)
 
 	def __len__(self):
 		return self.train_len
@@ -166,34 +195,7 @@ class DataPrep:
 		return meta_data
 
 
-class Quick:
-	def __init__(self, cols=[m.ID, 'mjd', 'flux']):
-		# doesn't read the absurdly large test set sample
 
-		self.fns = ['training_set', 'training_set_metadata']
-		self.df, self.meta_df = m.read_multi(self.fns)
-
-
-		self.df = self.df[cols]
-
-		self.df_grouped = self.df.groupby(by=m.ID, as_index=False)
-
-		# self.target_classes = self.meta_df['target'].unique()
-		# self.target_classes.sort()
-
-		# self.class_list = self.target_classes.tolist()
-
-		# self.merged = pd.merge(self.df, self.meta_df, on=m.ID)
-		# self.merged= self.merged.fillna(0).astype(np.float32)
-
-		# self.grouped = self.merged.groupby(by=m.ID, as_index=False)
-
-		# self.grouped = self.merged.groupby(by=[m.ID, 'passband'], as_index=False)
-
-		# self.unscaled_objs = [obj[1] for obj in self.grouped]
-
-	def graph_test(self):
-		graph_object(self.unscaled_objs, 234)
 
 
 def graph_object(self, df_list, index, passband=None, df=1):

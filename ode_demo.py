@@ -34,12 +34,7 @@ device = torch.device('cuda:' + str(args.gpu) if torch.cuda.is_available() else 
 true_A = torch.tensor([[-0.1, 2.0], [-2.0, -0.1]])  # ???
 
 
-flux_loader = l.FluxLoader()
-item = flux_loader.__getitem__(20)
-t = item[0]
 
-true_y = item[1]
-true_y0 = true_y[0]
 
 def get_batch(itr):
     y_cutoff = args.batch_size * itr
@@ -80,12 +75,21 @@ class ODEFunc(nn.Module):
                 nn.init.constant_(m.bias, val=0)
 
     def forward(self, t, y):
-        return self.net(y**3)
+        y = y.float()
+        t = t.float()
+        return self.net(y.float()**3).float()
 
 
 if __name__ == '__main__':
 
     ii = 0
+
+    flux_loader = l.FluxLoader()
+    item = flux_loader.__getitem__(20)
+    t = item[0]
+
+    true_y = item[1]
+    true_y0 = true_y[0]
 
     func = ODEFunc()
     optimizer = optim.RMSprop(func.parameters(), lr=1e-3)
@@ -95,8 +99,11 @@ if __name__ == '__main__':
         
         optimizer.zero_grad()
         batch_y0, batch_t, batch_y = get_batch(itr)
+        batch_y0 = batch_y0.float()
+        batch_t = batch_t.float()
+        batch_y = batch_y.float()
 
-        pred_y = odeint(func, batch_y0, batch_t)
+        pred_y = odeint(func, batch_y0.float(), batch_t.float())
         
         loss = torch.mean(torch.abs(pred_y - batch_y))
         

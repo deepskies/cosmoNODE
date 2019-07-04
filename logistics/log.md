@@ -2,7 +2,7 @@ Time-of documentation:
 6/26/19
 
 	11:04 AM trained using anandijain/sip/gym-sip/regression.py neural network on training_set.csv of LSST and tested on the test_set_sample.py
-		
+
 		+ the model is just linear 5 -> 20 -> 3 -> 8 -> 4 -> 1 (definitely not optimal, but wanted to just train on anything)
 		+ the data was scaled -1 to 1 and the p-value for correct flux prediction was 0.1
 		+ the inputs were all of the columns besides the flux label.
@@ -11,23 +11,23 @@ Time-of documentation:
 		+ (3:26 PM update) - this accuracy ^ is most likely false as the object_id was given as one of the inputs to the network, while I only trained on one epoch, this definitely will cause overfitting
 
 	11:47 AM using matplotlib to interpret timeseries data
-		 
+
 		 + plotting each object with flux/time and colored according to band
 
-	12:00 PM 
+	12:00 PM
 
 		+ journal meeting
 
 	12:50
-		
+
 		+ minerva tour
 
-	3:15 
-		
+	3:15
+
 		+ class written for taking in data and merging.
 
-	4:15 
-		
+	4:15
+
 		+ getting acquainted w tf2 for cross validating NODEs (#TODO)
 
 	5:00
@@ -44,22 +44,22 @@ Time-of documentation:
 		+ got files to upload to colab (the model is not working, reason: input shape is wrong. the model can't learn from a single flux value)
 		+ starting torch custom dataloader for NODE
 
-	9:15 
+	9:15
 
 		+ loader framework done, fitting shape so that the input tensor is the timeseries data and not an individual row
 
-	9:30 
-	
-		+ each object can have a different number of datapoints, which means the nn needs to take in dynamic shapes 
-		
+	9:30
 
-	10:00 
+		+ each object can have a different number of datapoints, which means the nn needs to take in dynamic shapes
+
+
+	10:00
 
 		+ read thru Deep Skies guide, filled out timecard
 
-	10:20 
+	10:20
 
-		+ transfered repo to /deepskies/ 
+		+ transfered repo to /deepskies/
 
 		+ looking into dynamic shape methods:
 			1. pad input tensors to all the same shape (easy and less cool)
@@ -68,13 +68,13 @@ Time-of documentation:
 
 			2. dynamic
 
-	11:00 
+	11:00
 
 		+ finished custom dataloader for pytorch
 
 		+ writing test net for torch (building up to NODE)
 
-	11:43 
+	11:43
 
 		+ fixed bugs with torch Dataset/Dataloader, padding finished
 
@@ -82,7 +82,7 @@ Time-of documentation:
 
 		+ simple mnist torch classifier modified to use LSST data
 
-	2:00 
+	2:00
 
 		+ lunch
 
@@ -92,11 +92,11 @@ Time-of documentation:
 
 		+ working thru exponentially growing loss/nan outputs
 
-		+ added data scaling using sklearn.preprocessing.min_max 
+		+ added data scaling using sklearn.preprocessing.min_max
 
-	5:00 
+	5:00
 
-		+ general discussions on RL strategies and noise w Yunchong and Callista 
+		+ general discussions on RL strategies and noise w Yunchong and Callista
 
 6/28/19
 
@@ -104,25 +104,25 @@ Time-of documentation:
 
 		+ setting up zoom, making a few edits on DS guide, overleaf
 
-		+ added resources to guide for RL 
+		+ added resources to guide for RL
 
 		+ working on filling out the outline and goals of project as stated in the guide
 
 			- updated google doc to fit template
 
-	+ 10:00 
+	+ 10:00
 
 		+ cosmoNODE now meets the minimum requirements for a deepskies project (i think)
 
 
 7/1/19
-	
+
 	+ 9:47 AM
 
 		+ reading through torchdiffeq to understand how the mnist model works,
 			- because im still not positive how the one dimentional ODE is used for 2 dimensional inputs, like images
 
-		+ i am realizing that i need to know more about ODEs 
+		+ i am realizing that i need to know more about ODEs
 
 		+ found a keras implementation of ODENET
 
@@ -132,7 +132,7 @@ Time-of documentation:
 
 	+ 12:20 PM
 
-		+ starting to grasp how the ode is working on images, 
+		+ starting to grasp how the ode is working on images,
 
 		+ (n, 1, 28, 28) -> (n, 64, 26, 26) -> (n, 64, 13, 13)
 
@@ -140,11 +140,11 @@ Time-of documentation:
 
 	+ 10:15 AM
 
-		+ ditching 2D non timeseries example for mnist to actually make headway on timeseries classification 
+		+ ditching 2D non timeseries example for mnist to actually make headway on timeseries classification
 
 		+ graph specific bands working
 
-		+ linear model in torch trained 
+		+ linear model in torch trained
 			- found that, since the value count distribution of targets is unequal, the model learns to just pick the most common class
 
 
@@ -152,8 +152,8 @@ Time-of documentation:
 		RL and NODE meetings. decision to focus on 1D time for light curve prediction (NO CLASSIFICATION YET)
 
 7/3/19
-	
-	+ 9:00 AM 
+
+	+ 9:00 AM
 		+ built torch dataloader for the task below
 
 		+ reading through ode_demo and repurposing cosmoNODE/ode_demo.py to handle light curve data
@@ -162,4 +162,10 @@ Time-of documentation:
 
 		+ ode_flux almost ready for testing, last leg of debugging and tensor shape fitting
 
-		+ have a meeting at 3, wouldn't be able to finish, cleaned repository 
+		+ have a meeting at 3, wouldn't be able to finish, cleaned repository
+
+	+ 3:00 - 4:30 PM
+
+		+ RL meeting, back to ODE
+
+		+ got the tensor datatypes worked out, but there is a shape issue

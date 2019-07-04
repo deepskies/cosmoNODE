@@ -11,7 +11,7 @@ band_color_map = {0 : 'r',
 				 2 : 'b',
 				 3 : 'c',
 				 4 : 'm',
-				 5 : 'y'} 
+				 5 : 'y'}
 
 def read_multi(fns):
 	dfs = []

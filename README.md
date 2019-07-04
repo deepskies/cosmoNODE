@@ -13,6 +13,12 @@ https://drive.google.com/open?id=1dDKOfZrUGG_9MTxTWis1rhZ4L-IAFqjq8vEfahfMiVs
 https://drive.google.com/open?id=1twyeXpB2EeFEyGj7Y61C9KN7vSuHcUv0 
 
 
+# Stable tests:
+	+ keras_classify.py
+
+	+ (semi) simple_torch.py
+
+
 # TODO priority queue:
 	1. build NODE classification demo!!!
 

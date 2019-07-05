@@ -177,7 +177,7 @@ Starting new format
 
 7/5/19
 	+ Day goals:
-		- I want to get ode_demo.py to run on one object
+		- I want to get ode_demo.py to run on one object (completed ~1:00 PM)
 
 		- make more progress on latex document
 
@@ -208,3 +208,9 @@ Starting new format
 		- 1:00 PM
 			- ready for more rigorous testing and implementing multiple objects and
 			separated passbands
+
+			- JK (still getting loss of zero or shape errors)
+
+		- 2:30 PM
+			- okay i think i kinda see what they're doing w batching, for now,
+			im only going to do one y0 at a time. 

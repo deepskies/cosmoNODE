@@ -4,6 +4,8 @@
 
 
 # TODO priority queue:
+	1. REDO todo list !!
+
 	1. build NODE classification demo!!!
 
 	2. write validation nets for testing against NODEs
@@ -22,3 +24,5 @@
 # Things that seem interesting but later:
 
 	1. tf.distribute
+
+	2. Gen and FluxDiffeq in Julia lang

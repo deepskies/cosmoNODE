@@ -46,12 +46,25 @@ def get_batch(itr, item):
 
     s = torch.tensor([i for i in range(y_lower_cutoff, y_cutoff)])
 
-    batch_y0 = true_y[y_lower_cutoff:y_cutoff].reshape(-1, 1)  # read from dataframe
+    batch_y0 = true_y[0].reshape(-1, 1)  # read from dataframe
 
     t_cutoff = args.batch_time * itr
     t_lower_cutoff = t_cutoff - args.batch_time
 
-    batch_t = t[y_lower_cutoff:y_cutoff]  # (T)
+    batch_t = t[t_lower_cutoff:t_cutoff]  # (T)
+
+    batch_y = torch.stack([true_y[s + i] for i in range(args.batch_time)], dim=0)  # (T, M, D)
+    return batch_y0, batch_t, batch_y
+
+def their_get_batch(item):
+    t = item[0]
+    true_y = item[1]
+    y_len = len(true_y)
+    s = torch.from_numpy(np.random.choice(np.arange(y_len - args.batch_time, dtype=np.int64), args.batch_size, replace=False))
+
+    batch_y0 = true_y[s]  # (M, D)
+
+    batch_t = t[:args.batch_time]  # (T)
 
     batch_y = torch.stack([true_y[s + i] for i in range(args.batch_time)], dim=0)  # (T, M, D)
     return batch_y0, batch_t, batch_y
@@ -135,7 +148,7 @@ class ODEFunc(nn.Module):
                 nn.init.constant_(m.bias, val=0)
 
     def forward(self, t, y):
-        return self.net(y**3)
+        return self.net(y**3)  # y**3 is element cubing, no change of shape
 
 
 def fl():
@@ -152,19 +165,23 @@ def flux_item(index=20):
 
 
 def test():
+    # this works
     t, y = flux_item()
 
     ii = 0
 
     true_t0 = t[:args.batch_time] # .reshape([1])
-    true_y0 = y[0].reshape([1])
+    true_y0 = y[0].reshape([-1, 1])
 
     func = ODEFunc().double()
     print(func)
 
     pred_y = odeint(func, true_y0, true_t0).double()
 
+    loss = torch.mean(torch.abs(pred_y - y[:10])).requires_grad_(True)
+
     print(pred_y)
+    print(loss)
 
     visualize(true_y0, pred_y, func, ii)
 
@@ -177,10 +194,13 @@ if __name__ == '__main__':
 
     t, y = flux_item()
 
-    print(t)
+    seq_len = len(t)
+    # print(t)
 
     true_t0 = t[0].reshape([1])
     true_y0 = y[0].reshape([1])
+
+    print(true_t0, true_y0)
 
     func = ODEFunc().double()
 
@@ -190,32 +210,39 @@ if __name__ == '__main__':
     for itr in range(1, args.niters + 1):
 
         optimizer.zero_grad()
-        batch = get_batch(itr, (t, y))
-        if batch is None:
-            print('obj finished')
-            break
+        # batch = their_get_batch((t, y))
+        # if batch is None:
+        #     print('obj finished')
+        #     break
 
-        batch_y0, batch_t, batch_y = batch
-
+        # batch_y0, batch_t, batch_y = batch
+        # batch_y0 = batch_y0.view([-1, 1])
         # true_t0 = t[itr].reshape([1])
         # true_y0 = y[itr].reshape([1])
+        up_bound = itr*args.batch_time
+        if up_bound >= seq_len:
+            break
 
-        pred_y = odeint(func, batch_y0, batch_t)
+        batch_t = t[up_bound - args.batch_time:itr*args.batch_time]
+
+        pred_y = odeint(func, true_y0, batch_t)  # going to return batch_time # of predictions
+
+        batch_y = y[up_bound - args.batch_time:itr*args.batch_time]
 
         # pred_y = odeint(func, true_y0, true_t0).double()
+        print(pred_y[1], batch_y[1])
 
-
-        loss = torch.mean(torch.abs(pred_y - true_y0)).requires_grad_(True)
+        loss = torch.mean(torch.abs(pred_y - batch_y)).requires_grad_(True)
         # print('real: ({}, {})'.format(batch_t, true_y0))
         # print('pred_y: {}'.format(pred_y))
-        # print('loss: {}'.format(loss))
+        print('loss: {}'.format(loss))
         loss.backward()
         optimizer.step()
 
         if itr % args.test_freq == 0:
             with torch.no_grad():
-                pred_y = odeint(func, true_y0, true_t0)
-                loss = torch.mean(torch.abs(pred_y - true_y0))
+                pred_y = odeint(func, true_y0, batch_t)
+                loss = torch.mean(torch.abs(pred_y - batch_y))
                 print('Iter {:04d} | Total Loss {:.6f}'.format(itr, loss.item()))
                 visualize(true_y0, pred_y, func, ii)
                 ii += 1

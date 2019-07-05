@@ -14,7 +14,7 @@ parser.add_argument('--data_size', type=int, default=1000)
 parser.add_argument('--batch_time', type=int, default=10)
 parser.add_argument('--batch_size', type=int, default=20)
 parser.add_argument('--niters', type=int, default=2000)
-parser.add_argument('--test_freq', type=int, default=20)
+parser.add_argument('--test_freq', type=int, default=5)
 parser.add_argument('--viz', action='store_true')
 parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--adjoint', action='store_true')
@@ -34,12 +34,15 @@ device = torch.device('cuda:' + str(args.gpu) if torch.cuda.is_available() else 
 true_A = torch.tensor([[-0.1, 2.0], [-2.0, -0.1]])  # ???
 
 def get_batch(itr, item):
-
     t = item[0]
     true_y = item[1]
+    y_len = len(true_y)
 
     y_cutoff = args.batch_size * itr
     y_lower_cutoff = y_cutoff - args.batch_size
+
+    if y_cutoff >= y_len:
+        return None
 
     s = torch.tensor([i for i in range(y_lower_cutoff, y_cutoff)])
 
@@ -123,6 +126,7 @@ class ODEFunc(nn.Module):
             nn.Tanh(),
             nn.Linear(50, 1),
         )
+
         self.net = self.net.double()
 
         for m in self.net.modules():
@@ -131,8 +135,6 @@ class ODEFunc(nn.Module):
                 nn.init.constant_(m.bias, val=0)
 
     def forward(self, t, y):
-        # y = y.float()
-        # t = t.float()
         return self.net(y**3)
 
 
@@ -188,8 +190,12 @@ if __name__ == '__main__':
     for itr in range(1, args.niters + 1):
 
         optimizer.zero_grad()
-        batch_y0, batch_t, batch_y = get_batch(itr, (t, y))
+        batch = get_batch(itr, (t, y))
+        if batch is None:
+            print('obj finished')
+            break
 
+        batch_y0, batch_t, batch_y = batch
 
         # true_t0 = t[itr].reshape([1])
         # true_y0 = y[itr].reshape([1])
@@ -215,3 +221,4 @@ if __name__ == '__main__':
                 ii += 1
 
         end = time.time()
+    print('done')

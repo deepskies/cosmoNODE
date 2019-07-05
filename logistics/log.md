@@ -199,4 +199,12 @@ Starting new format
 		- 12:00 PM
 			- batching almost working
 
-			- t not strictly increasing error, added sort_values in loaders,
+			- t not strictly increasing error, added sort_values in loaders
+
+			- got rid of sequence paddding, need to fix index errors in get_batch
+
+			- index error fix written (pretty hacky)
+
+		- 1:00 PM
+			- ready for more rigorous testing and implementing multiple objects and
+			separated passbands

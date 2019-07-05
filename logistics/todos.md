@@ -1,3 +1,8 @@
+# known issues
+
+	1. get_batch will always index error sequence
+
+
 # TODO priority queue:
 	1. build NODE classification demo!!!
 

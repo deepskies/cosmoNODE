@@ -118,7 +118,7 @@ class FluxLoader(Dataset):
 
 		# self.padded_items = torch.nn.utils.rnn.pad_sequence(self.t_items, batch_first=True)
 
-		
+
 		# print(self.padded_items[0])
 
 		self.train_len = len(self.items)
@@ -196,11 +196,11 @@ class DataPrep:
 		return meta_data
 
 
-def graph_object(self, df_list, index, passband=None, df=1):
+def graph_object(df_list, index, passband=None, df=1):
 
 	obj = df_list[index]
 
-	obj = obj[1]  # tuple -> df
+	# obj = obj[1]  # tuple -> df
 
 	if passband is None:
 		# use all bands in graph

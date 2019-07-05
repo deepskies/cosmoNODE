@@ -169,3 +169,48 @@ Time-of documentation:
 		+ RL meeting, back to ODE
 
 		+ got the tensor datatypes worked out, but there is a shape issue
+
+
+
+--
+Starting new format
+
+7/5/19
+	+ Day goals:
+		- I want to get ode_demo.py to run on one object (completed ~1:00 PM)
+
+		- make more progress on latex document
+
+		- clean up and improve google doc
+
+	+ Log:
+		- 10:00 AM:
+			- dtype errors are so frustrating!!
+			- net = net.float() is very useful
+			- got odeint(func, y0, t0) to run!!
+
+		- 11:00 AM:
+			- up to backprop, got a gradient problem
+			- fixed, ODE_demo now runs, however, loss is always zero
+			- it is getting the pred_y dead on so it must have the answer
+				- we understand why: by t0.size == [1] we basically are only trying to
+				solve y for that point, we need to give it other values to calculate y for
+
+		- 12:00 PM
+			- batching almost working
+
+			- t not strictly increasing error, added sort_values in loaders
+
+			- got rid of sequence paddding, need to fix index errors in get_batch
+
+			- index error fix written (pretty hacky)
+
+		- 1:00 PM
+			- ready for more rigorous testing and implementing multiple objects and
+			separated passbands
+
+			- JK (still getting loss of zero or shape errors)
+
+		- 2:30 PM
+			- okay i think i kinda see what they're doing w batching, for now,
+			im only going to do one y0 at a time. 

@@ -45,7 +45,7 @@ class Quick:
 # pytorch loader
 class LSST(Dataset):
 	def __init__(self, data_class=Quick()):
-		
+
 		self.data_class = data_class
 
 		# self.pad_len = self.data_class.seq_max_len
@@ -53,7 +53,7 @@ class LSST(Dataset):
 		# self.items = self.data_class.merged_objs
 		self.items = self.data_class.unscaled_objs
 
-		# inefficient, want to create label list earlier 
+		# inefficient, want to create label list earlier
 		self.labels = [elt.target.iloc[0] for elt in self.items]
 
 		self.raw_items = [item.drop(['object_id', 'target'], axis=1) for item in self.items]
@@ -85,7 +85,7 @@ class LSST(Dataset):
 
 		# haven't rigorously checked that there aren't other columns that are linearly
 		# dependent with the target value
-		
+
 		return (obj, target_tensor)
 
 	def __len__(self):
@@ -102,32 +102,33 @@ class FluxLoader(Dataset):
 	def __init__(self):
 
 		full_df = pd.read_csv('./data/training_set.csv')
-		
+
 		self.split_pct = 0.7
 
-		
+
 		self.df = full_df[['object_id', 'mjd', 'flux']]
-		
+
 		self.items = self.df.groupby(by='object_id', as_index=False)
-		self.items = [item[1].drop(m.ID, axis=1) for item in self.items]
+		self.items = [item[1].drop(m.ID, axis=1).sort_values(by='mjd') for item in self.items]
 
 		self.item = self.items[0]
 		# print(self.item)
 
 		self.t_items = [torch.tensor(item.values) for item in self.items]
 
-		self.padded_items = torch.nn.utils.rnn.pad_sequence(self.t_items, batch_first=True)
+		# self.padded_items = torch.nn.utils.rnn.pad_sequence(self.t_items, batch_first=True)
 
 
 		# print(self.padded_items[0])
 
 		self.train_len = len(self.items)
-	
+
 	def __getitem__(self, index):
-		obj = self.padded_items[index]
+		# obj = self.padded_items[index]
+		obj = self.t_items[index]
 		times = obj[:, 0]
 		fluxes = obj[:, 1]
-		return (times.double(), fluxes.double())  # (t, y)
+		return (times, fluxes)  # (t, y)
 
 	def __len__(self):
 		return self.train_len
@@ -135,27 +136,27 @@ class FluxLoader(Dataset):
 
 class DataPrep:
 	def __init__(self):
-		self.fns = ['training_set', 'training_set_metadata', 'test_set_sample', 'test_set_metadata'] 
-		
+		self.fns = ['training_set', 'training_set_metadata', 'test_set_sample', 'test_set_metadata']
+
 		self.df, self.meta_df, self.test_df, self.test_meta = m.read_multi(self.fns)
-		
+
 		self.set_list = [self.df, self.meta_df, self.test_df, self.test_meta]
 
 		# fill in Na
 
-		self.tr_objs = [obj for obj in self.df.groupby(by=m.ID, as_index=False)] 
-		self.te_objs = [obj for obj in self.df.groupby(by=m.ID, as_index=False)] 
+		self.tr_objs = [obj for obj in self.df.groupby(by=m.ID, as_index=False)]
+		self.te_objs = [obj for obj in self.df.groupby(by=m.ID, as_index=False)]
 
-		self.tr_objs_pb = [obj for obj in self.df.groupby(by=[m.ID, 'passband'], as_index=False)] 
-		self.te_objs_pb = [obj for obj in self.df.groupby(by=[m.ID, 'passband'], as_index=False)] 
+		self.tr_objs_pb = [obj for obj in self.df.groupby(by=[m.ID, 'passband'], as_index=False)]
+		self.te_objs_pb = [obj for obj in self.df.groupby(by=[m.ID, 'passband'], as_index=False)]
 
 
 		self.seq_max_len = self.df[m.ID].value_counts().max()
 
 		'''
-		was asserting that df1.size + df2.size == merged 
+		was asserting that df1.size + df2.size == merged
 		this is not the case, and theres isnt some cool compression used to prevent
-		duplicating metadata 
+		duplicating metadata
 		pd.merge will be fine for now
 		'''
 
@@ -169,13 +170,13 @@ class DataPrep:
 		self.test_grouped = self.test_merged.groupby(by=m.ID, as_index=False)
 
 		self.unscaled_objs = [obj[1] for obj in self.grouped]
-		self.test_unscaled_obj = [obj[1] for obj in self.test_grouped] 
+		self.test_unscaled_obj = [obj[1] for obj in self.test_grouped]
 
 		self.merged = m.scale_df(self.merged)
 		self.test_merged = m.scale_df(self.test_merged)
 
-		self.merged_objs = [obj[1] for obj in self.grouped] 
-		self.test_merged_objs = [obj[1] for obj in self.test_grouped] 
+		self.merged_objs = [obj[1] for obj in self.grouped]
+		self.test_merged_objs = [obj[1] for obj in self.test_grouped]
 
 		# self.merged_pbs = [obj[1] for ]
 
@@ -186,7 +187,7 @@ class DataPrep:
 
 		self.class_list = self.target_classes.tolist()
 
-		self.output_size = len(self.target_classes)	
+		self.output_size = len(self.target_classes)
 
 		print('demo initialized\n')
 
@@ -195,14 +196,11 @@ class DataPrep:
 		return meta_data
 
 
-
-
-
-def graph_object(self, df_list, index, passband=None, df=1):
+def graph_object(df_list, index, passband=None, df=1):
 
 	obj = df_list[index]
 
-	obj = obj[1]  # tuple -> df
+	# obj = obj[1]  # tuple -> df
 
 	if passband is None:
 		# use all bands in graph
@@ -213,7 +211,7 @@ def graph_object(self, df_list, index, passband=None, df=1):
 
 
 	bands = obj['passband']
-	
+
 	# TODO, port to pandas transforms/mapping for efficiency
 
 	colors = []
@@ -231,5 +229,3 @@ def graph_object(self, df_list, index, passband=None, df=1):
 
 if __name__ == '__main__':
 	f = FluxLoader()
-
-

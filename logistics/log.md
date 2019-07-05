@@ -184,7 +184,8 @@ Starting new format
 		- clean up and improve google doc
 
 	+ Log:
-		- 10:00 AM: dtype errors are so frustrating!!
+		- 10:00 AM:
+			- dtype errors are so frustrating!!
 			- net = net.float() is very useful
 			- got odeint(func, y0, t0) to run!!
 
@@ -192,4 +193,8 @@ Starting new format
 			- up to backprop, got a gradient problem
 			- fixed, ODE_demo now runs, however, loss is always zero
 			- it is getting the pred_y dead on so it must have the answer
-			
+				- we understand why: by t0.size == [1] we basically are only trying to
+				solve y for that point, we need to give it other values to calculate y for
+
+		- 12:00 PM
+			- batching almost working 

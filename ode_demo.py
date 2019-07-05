@@ -28,13 +28,10 @@ else:
 device = torch.device('cuda:' + str(args.gpu) if torch.cuda.is_available() else 'cpu')
 
 
-# t = torch.linspace(0., 25., args.data_size) # objects times 
+# t = torch.linspace(0., 25., args.data_size) # objects times
 
 
 true_A = torch.tensor([[-0.1, 2.0], [-2.0, -0.1]])  # ???
-
-
-
 
 def get_batch(itr):
     y_cutoff = args.batch_size * itr
@@ -43,12 +40,12 @@ def get_batch(itr):
     s = torch.tensor([i for i in range(y_lower_cutoff, y_cutoff)])
 
     batch_y0 = true_y[y_lower_cutoff:y_cutoff]  # read from dataframe
-    
+
     t_cutoff = args.batch_time * itr
     t_lower_cutoff = t_cutoff - args.batch_time
 
     batch_t = t[t_lower_cutoff:t_cutoff]  # (T)
-    
+
     batch_y = torch.stack([true_y[s + i] for i in range(args.batch_time)], dim=0)  # (T, M, D)
     return batch_y0, batch_t, batch_y
 
@@ -56,6 +53,60 @@ def get_batch(itr):
 def makedirs(dirname):
     if not os.path.exists(dirname):
         os.makedirs(dirname)
+
+
+if args.viz:
+    makedirs('png')
+    import matplotlib.pyplot as plt
+    fig = plt.figure(figsize=(12, 4), facecolor='white')
+    ax_traj = fig.add_subplot(131, frameon=False)
+    ax_phase = fig.add_subplot(132, frameon=False)
+    ax_vecfield = fig.add_subplot(133, frameon=False)
+    plt.show(block=False)
+
+
+def visualize(true_y, pred_y, odefunc, itr):
+
+    if args.viz:
+
+        ax_traj.cla()
+        ax_traj.set_title('Trajectories')
+        ax_traj.set_xlabel('t')
+        ax_traj.set_ylabel('x,y')
+        ax_traj.plot(t.numpy(), true_y.numpy()[:, 0, 0], t.numpy(), true_y.numpy()[:, 0, 1], 'g-')
+        ax_traj.plot(t.numpy(), pred_y.numpy()[:, 0, 0], '--', t.numpy(), pred_y.numpy()[:, 0, 1], 'b--')
+        ax_traj.set_xlim(t.min(), t.max())
+        ax_traj.set_ylim(-2, 2)
+        ax_traj.legend()
+
+        ax_phase.cla()
+        ax_phase.set_title('Phase Portrait')
+        ax_phase.set_xlabel('x')
+        ax_phase.set_ylabel('y')
+        ax_phase.plot(true_y.numpy()[:, 0, 0], true_y.numpy()[:, 0, 1], 'g-')
+        ax_phase.plot(pred_y.numpy()[:, 0, 0], pred_y.numpy()[:, 0, 1], 'b--')
+        ax_phase.set_xlim(-2, 2)
+        ax_phase.set_ylim(-2, 2)
+
+        ax_vecfield.cla()
+        ax_vecfield.set_title('Learned Vector Field')
+        ax_vecfield.set_xlabel('x')
+        ax_vecfield.set_ylabel('y')
+
+        y, x = np.mgrid[-2:2:21j, -2:2:21j]
+        dydt = odefunc(0, torch.Tensor(np.stack([x, y], -1).reshape(21 * 21, 2))).cpu().detach().numpy()
+        mag = np.sqrt(dydt[:, 0]**2 + dydt[:, 1]**2).reshape(-1, 1)
+        dydt = (dydt / mag)
+        dydt = dydt.reshape(21, 21, 2)
+
+        ax_vecfield.streamplot(x, y, dydt[:, :, 0], dydt[:, :, 1], color="black")
+        ax_vecfield.set_xlim(-2, 2)
+        ax_vecfield.set_ylim(-2, 2)
+
+        fig.tight_layout()
+        plt.savefig('png/{:03d}'.format(itr))
+        plt.draw()
+        plt.pause(0.001)
 
 
 class ODEFunc(nn.Module):
@@ -68,6 +119,7 @@ class ODEFunc(nn.Module):
             nn.Tanh(),
             nn.Linear(50, 1),
         )
+        self.net = self.net.double()
 
         for m in self.net.modules():
             if isinstance(m, nn.Linear):
@@ -75,9 +127,28 @@ class ODEFunc(nn.Module):
                 nn.init.constant_(m.bias, val=0)
 
     def forward(self, t, y):
-        y = y.float()
-        t = t.float()
-        return self.net(y.float()**3).float()
+        # y = y.float()
+        # t = t.float()
+        return self.net(y**3)
+
+def test():
+    flux_loader = l.FluxLoader()
+    item = flux_loader.__getitem__(20)
+    ii = 0
+    t = item[0]
+    y = item[1]
+
+    true_t0 = t[0].reshape([1])
+    true_y0 = y[0].reshape([1])
+
+    func = ODEFunc().double()
+    print(func)
+
+    pred_y = odeint(func, true_y0, true_t0).double()
+
+    print(pred_y)
+
+    visualize(true_y0, pred_y, func, ii)
 
 
 if __name__ == '__main__':
@@ -86,36 +157,47 @@ if __name__ == '__main__':
 
     flux_loader = l.FluxLoader()
     item = flux_loader.__getitem__(20)
+
     t = item[0]
+    y = item[1]
 
-    true_y = item[1]
-    true_y0 = true_y[0]
+    true_t0 = t[0].reshape([1])
+    true_y0 = y[0].reshape([1])
 
-    func = ODEFunc()
+    func = ODEFunc().double()
+
     optimizer = optim.RMSprop(func.parameters(), lr=1e-3)
-    
 
     for itr in range(1, args.niters + 1):
-        
-        optimizer.zero_grad()
-        batch_y0, batch_t, batch_y = get_batch(itr)
-        batch_y0 = batch_y0.float()
-        batch_t = batch_t.float()
-        batch_y = batch_y.float()
 
-        pred_y = odeint(func, batch_y0.float(), batch_t.float())
-        
-        loss = torch.mean(torch.abs(pred_y - batch_y))
-        
+        optimizer.zero_grad()
+        # batch_y0, batch_t, batch_y = get_batch(itr)
+        # batch_y0 = batch_y0.float()
+        # batch_t = batch_t.float()
+        # batch_y = batch_y.float()
+
+        true_t0 = t[itr].reshape([1])
+        true_y0 = y[itr].reshape([1])
+
+        # print()
+
+
+        # pred_y = odeint(func, batch_y0.float(), batch_t.float())
+        pred_y = odeint(func, true_y0, true_t0).double()
+
+        loss = torch.mean(torch.abs(pred_y - true_y0)).requires_grad_(True)
+        print('real: ({}, {})'.format(true_y0, true_t0))
+        print('pred_y: {}'.format(pred_y))
+        print('loss: {}'.format(loss))
         loss.backward()
         optimizer.step()
 
         if itr % args.test_freq == 0:
             with torch.no_grad():
-                pred_y = odeint(func, true_y0, t)
-                loss = torch.mean(torch.abs(pred_y - true_y))
+                pred_y = odeint(func, true_y0, true_t0)
+                loss = torch.mean(torch.abs(pred_y - true_y0))
                 print('Iter {:04d} | Total Loss {:.6f}'.format(itr, loss.item()))
-                visualize(true_y, pred_y, func, ii)
+                visualize(true_y0, pred_y, func, ii)
                 ii += 1
 
         end = time.time()

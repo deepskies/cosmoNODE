@@ -169,3 +169,27 @@ Time-of documentation:
 		+ RL meeting, back to ODE
 
 		+ got the tensor datatypes worked out, but there is a shape issue
+
+
+
+--
+Starting new format
+
+7/5/19
+	+ Day goals:
+		- I want to get ode_demo.py to run on one object
+
+		- make more progress on latex document
+
+		- clean up and improve google doc
+
+	+ Log:
+		- 10:00 AM: dtype errors are so frustrating!!
+			- net = net.float() is very useful
+			- got odeint(func, y0, t0) to run!!
+
+		- 11:00 AM:
+			- up to backprop, got a gradient problem
+			- fixed, ODE_demo now runs, however, loss is always zero
+			- it is getting the pred_y dead on so it must have the answer
+			

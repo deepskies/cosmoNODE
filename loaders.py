@@ -109,22 +109,23 @@ class FluxLoader(Dataset):
 		self.df = full_df[['object_id', 'mjd', 'flux']]
 
 		self.items = self.df.groupby(by='object_id', as_index=False)
-		self.items = [item[1].drop(m.ID, axis=1) for item in self.items]
+		self.items = [item[1].drop(m.ID, axis=1).sort_values(by='mjd') for item in self.items]
 
 		self.item = self.items[0]
 		# print(self.item)
 
 		self.t_items = [torch.tensor(item.values) for item in self.items]
 
-		self.padded_items = torch.nn.utils.rnn.pad_sequence(self.t_items, batch_first=True)
+		# self.padded_items = torch.nn.utils.rnn.pad_sequence(self.t_items, batch_first=True)
 
-
+		
 		# print(self.padded_items[0])
 
 		self.train_len = len(self.items)
 
 	def __getitem__(self, index):
-		obj = self.padded_items[index]
+		# obj = self.padded_items[index]
+		obj = self.t_items[index]
 		times = obj[:, 0]
 		fluxes = obj[:, 1]
 		return (times, fluxes)  # (t, y)

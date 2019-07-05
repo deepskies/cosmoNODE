@@ -175,12 +175,15 @@ if __name__ == '__main__':
 
     t, y = flux_item()
 
+    print(t)
+
     true_t0 = t[0].reshape([1])
     true_y0 = y[0].reshape([1])
 
     func = ODEFunc().double()
 
     optimizer = optim.RMSprop(func.parameters(), lr=1e-3)
+
 
     for itr in range(1, args.niters + 1):
 
@@ -197,7 +200,7 @@ if __name__ == '__main__':
 
 
         loss = torch.mean(torch.abs(pred_y - true_y0)).requires_grad_(True)
-        # print('real: ({}, {})'.format(true_t0, true_y0))
+        # print('real: ({}, {})'.format(batch_t, true_y0))
         # print('pred_y: {}'.format(pred_y))
         # print('loss: {}'.format(loss))
         loss.backward()

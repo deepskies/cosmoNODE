@@ -197,4 +197,6 @@ Starting new format
 				solve y for that point, we need to give it other values to calculate y for
 
 		- 12:00 PM
-			- batching almost working 
+			- batching almost working
+
+			-

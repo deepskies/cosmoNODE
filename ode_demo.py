@@ -197,9 +197,9 @@ if __name__ == '__main__':
 
 
         loss = torch.mean(torch.abs(pred_y - true_y0)).requires_grad_(True)
-        print('real: ({}, {})'.format(true_t0, true_y0))
-        print('pred_y: {}'.format(pred_y))
-        print('loss: {}'.format(loss))
+        # print('real: ({}, {})'.format(true_t0, true_y0))
+        # print('pred_y: {}'.format(pred_y))
+        # print('loss: {}'.format(loss))
         loss.backward()
         optimizer.step()
 

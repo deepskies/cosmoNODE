@@ -213,4 +213,15 @@ Starting new format
 
 		- 2:30 PM
 			- okay i think i kinda see what they're doing w batching, for now,
-			im only going to do one y0 at a time. 
+			im only going to do one y0 at a time.
+
+
+7/8/19
+	+ Day goals:
+		+ run the NODE with multiple objects and non 1D Y data (maybe flux, flux_err,
+			and some others)
+
+		+ google doc and latex doc
+
+		+ look into taking output of node and classifying
+		

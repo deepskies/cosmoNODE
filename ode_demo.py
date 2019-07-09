@@ -160,7 +160,7 @@ def flux_item(index=20):
     flux_loader = fl()
     item = flux_loader.__getitem__(index)
     t = item[0]
-    y = item[1]
+    y = item[1]  # assumes 1D y data
     return t, y
 
 
@@ -210,15 +210,7 @@ if __name__ == '__main__':
     for itr in range(1, args.niters + 1):
 
         optimizer.zero_grad()
-        # batch = their_get_batch((t, y))
-        # if batch is None:
-        #     print('obj finished')
-        #     break
 
-        # batch_y0, batch_t, batch_y = batch
-        # batch_y0 = batch_y0.view([-1, 1])
-        # true_t0 = t[itr].reshape([1])
-        # true_y0 = y[itr].reshape([1])
         up_bound = itr*args.batch_time
         if up_bound >= seq_len:
             break
@@ -248,4 +240,7 @@ if __name__ == '__main__':
                 ii += 1
 
         end = time.time()
+
+    # write testing loop
+
     print('done')

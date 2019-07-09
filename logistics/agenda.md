@@ -6,20 +6,19 @@
 
 		+ jup notebook for past week results demonstration
 
-		+ linear model 
+		+ linear model
 
-		+ CNN 
+		+ CNN
 
 
-	TODO: 
+	TODO:
 
 		+ meet minimum requirements for kaggle
 
 		+ ODE model
-	
+
 		+ fake data (sine, poisson)
 
-		+ ask on slack 
+		+ ask on slack
 
 		+ start w just flux for ode
-

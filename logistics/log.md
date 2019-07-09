@@ -221,7 +221,23 @@ Starting new format
 		+ run the NODE with multiple objects and non 1D Y data (maybe flux, flux_err,
 			and some others)
 
+		+ shuffle data
+
 		+ google doc and latex doc
 
 		+ look into taking output of node and classifying
-		
+
+		+ colabs (basic colabs done at ~2:00 PM)
+
+	+ Log:
+
+		+ (8:30 - 11:00 AM) Updating jupyter notebook
+
+		+ (11:00 AM - 12:30 PM) presentations
+
+		+ 12:30 finished jupyter, now adding visualization for colab, and inf train
+
+		+ 2:15 Two colabs made with some graphs. Loss decreases over time w NODE,
+			but asymptotically and the loss[0] - loss[end] is pretty small.
+
+		+ 

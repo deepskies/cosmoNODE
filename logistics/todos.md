@@ -6,6 +6,16 @@
 # TODO priority queue:
 	1. REDO todo list !!
 
+	1. Train on objects of the same class and apply to unseen ones of same class
+		+ it is unclear if this will work
+
+	2. infinite tester
+
+	3. DOCUMENTATION!!!
+
+
+# Other todos lol
+
 	1. build NODE classification demo!!!
 
 	2. write validation nets for testing against NODEs

@@ -29,7 +29,10 @@ else:
 
 device = torch.device('cuda:' + str(args.gpu) if torch.cuda.is_available() else 'cpu')
 
-
+'''
+This file reads 'cosmoNODE/data/single_obj.csv' into a pytorch DataLoader
+and attempts to use an ODE solver to learn the vector field.
+'''
 
 def makedirs(dirname):
     if not os.path.exists(dirname):
@@ -48,6 +51,9 @@ class ODEFunc(nn.Module):
 
         self.net = self.net.double()
 
+        '''
+        TODO: Look into what the nn.init.normal_ and nn.init.constant_ do.
+        '''
         for m in self.net.modules():
             if isinstance(m, nn.Linear):
                 nn.init.normal_(m.weight, mean=0, std=0.1)
@@ -73,10 +79,7 @@ def flux_item(index=20):
 
 if __name__ == '__main__':
 
-'''
-This file reads 'cosmoNODE/data/single_obj.csv' into a pytorch DataLoader
-and attempts to use an ODE solver to learn the vector field.
-'''
+
 
     ii = 0
 

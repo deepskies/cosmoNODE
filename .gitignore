@@ -12,3 +12,5 @@
 kaggle.json
 
 /experiment1/
+
+ode_mnist.py

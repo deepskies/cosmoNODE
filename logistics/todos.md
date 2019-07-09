@@ -1,17 +1,11 @@
-# known issues
-
-	1. get_batch will always index error sequence
-
-
 # TODO priority queue:
 	1. REDO todo list !!
 
-	1. Train on objects of the same class and apply to unseen ones of same class
-		+ it is unclear if this will work
+	2. N dimensional ODE model
 
-	2. infinite tester
+	3. Write an explainer.py that has some functions to call to easily demo functionality
 
-	3. DOCUMENTATION!!!
+	4. DOCUMENTATION!!!
 
 
 # Other todos lol
@@ -36,3 +30,7 @@
 	1. tf.distribute
 
 	2. Gen and FluxDiffeq in Julia lang
+
+	3. Train on objects of the same class and apply to unseen ones of same class
+		+ it is unclear if this will work
+		+ do this after classifier pipeline/framework

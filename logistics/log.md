@@ -239,5 +239,3 @@ Starting new format
 
 		+ 2:15 Two colabs made with some graphs. Loss decreases over time w NODE,
 			but asymptotically and the loss[0] - loss[end] is pretty small.
-
-		+ 

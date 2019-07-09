@@ -99,9 +99,9 @@ class LSST(Dataset):
 		pass
 
 class FluxLoader(Dataset):
-	def __init__(self):
+	def __init__(self, fn='single_obj.csv'):
 
-		full_df = pd.read_csv('./data/training_set.csv')
+		full_df = pd.read_csv('./data/' + fn)
 
 		self.split_pct = 0.7
 

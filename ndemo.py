@@ -94,49 +94,49 @@ if __name__ == '__main__':
 
     data_loader = l.NDim(BATCH_SIZE)
 
-    obj = data_loader.raw[data_loader.raw['object_id'] == 615]
+    # obj = data_loader.raw[data_loader.raw['object_id'] == 615]
 
-    t_df = obj['mjd']
-    y_df = obj.drop(['object_id', 'mjd', 'target'], axis=1)
+    # t_df = obj['mjd']
+    # y_df = obj.drop(['object_id', 'mjd', 'target'], axis=1)
+    #
+    # t = torch.tensor(t_df.values)
+    # y = torch.tensor(y_df.values)
 
-    t = torch.tensor(t_df.values)
-    y = torch.tensor(y_df.values)
 
-    y_dim = len(y_df.columns)
-
-    t0 = t[0].reshape([1])
-    y0 = y[0].reshape([-1])
 
     # y_dim = len(data_loader.y.columns)
     # print(data_loader.df.columns)
     # print(data_loader.y.columns)
 
-    func = ODEFunc(y_dim).double()
+    func = ODEFunc(data_loader.y_dim).double()
 
     print(func)
 
     optimizer = optim.RMSprop(func.parameters(), lr=1e-3)
 
-    # for i, item in enumerate(data_loader):
-        # t = item[0]
-        # y = item[1]
-        #
-        # if t is None:
-        #     break
+    for i, item in enumerate(data_loader):
+        t = item[0]
+        y = item[1]
 
-    optimizer.zero_grad()
+        t0 = t[0].reshape([1])
+        y0 = y[0].reshape([-1])
 
-    batch_t = t[0:BATCH_SIZE]
-    print(batch_t.shape)
+        if t is None:
+            break
 
-    batch_y = y[0:BATCH_SIZE]
-    print(batch_t.shape)
+        optimizer.zero_grad()
 
-    pred_y = odeint(func, y0, batch_t)
+        batch_t = t[0:BATCH_SIZE]
+        print(batch_t.shape)
 
-    loss = torch.mean(torch.abs(pred_y - batch_y)).requires_grad_(True)
-    loss.backward()
-    optimizer.step()
-    with torch.no_grad():
-        print(f'loss: {loss}')
-        # print(f'iter: {0}, t: {batch_t}, y: {batch_y}')
+        batch_y = y[0:BATCH_SIZE]
+        print(batch_t.shape)
+
+        pred_y = odeint(func, y0, batch_t)
+
+        loss = torch.mean(torch.abs(pred_y - batch_y)).requires_grad_(True)
+        loss.backward()
+        optimizer.step()
+        with torch.no_grad():
+            print(f'loss: {loss}')
+            # print(f'iter: {0}, t: {batch_t}, y: {batch_y}')

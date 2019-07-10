@@ -37,12 +37,15 @@ class NDim(Dataset):
 		self.t = self.df['mjd']  # 1D list of values to calculate Y for in ODE
 		self.y = self.df.drop('mjd', axis=1)
 
+		self.y_dim = len(self.y.columns)
+
 		self.train_len = len(self.df)
 
 	def __getitem__(self, index):
 		try:
-			item = (self.t.iloc[index:index + self.batch_size],
-			 		self.y.iloc[index:index + self.batch_size])
+			batch_t = torch.tensor(self.t.iloc[index:index + self.batch_size].values)
+			batch_y = torch.tensor(self.y.iloc[index:index + self.batch_size].values)
+			item = (batch_t, batch_y)
 		except IndexError:
 			item = (None, None)
 		return item

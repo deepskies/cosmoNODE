@@ -71,19 +71,6 @@ todo: test df.df w MinMaxScaler vs no scaling
 '''
 
 
-def inf_generator(iterable):
-    """Allows training with DataLoaders in a single infinite loop:
-        for i, (x, y) in enumerate(inf_generator(train_loader)):
-        copied from torchdiffeq
-    """
-    iterator = iterable.__iter__()
-    while True:
-        try:
-            yield iterator.__next__()
-        except StopIteration:
-            iterator = iterable.__iter__()
-
-
 class NDim(Dataset):
     def __init__(self):
         fns = ['training_set', 'training_set_metadata']
@@ -127,7 +114,7 @@ in the ODE
 
 if __name__ == '__main__':
     BATCH_SIZE = 100
-    
+
     data_loader = NDim()
     y_dim = len(data_loader.y.columns)
     print(data_loader.df.columns)

@@ -70,37 +70,6 @@ todo: test df.df w MinMaxScaler vs no scaling
 
 '''
 
-
-class NDim(Dataset):
-    def __init__(self):
-        fns = ['training_set', 'training_set_metadata']
-        self.tr, self.tr_meta = m.read_multi(fns)
-
-        self.raw = pd.merge(self.tr, self.tr_meta, on='object_id')
-        self.raw = self.raw.fillna(0)
-
-        # is it hacking to give the model obj_id?
-        self.obj_ids = self.raw['object_id']
-
-        self.df = self.raw.drop(['object_id', 'target'], axis=1)
-
-        self.t = self.df['mjd']  # 1D list of values to calculate Y for in ODE
-        self.y = self.df.drop('mjd', axis=1)
-
-        self.train_len = len(self.df)
-
-    '''
-    What shape should __getitem__ return?
-    Returning a single line seems inefficient. Fix later
-    For now im batching in here
-    '''
-    def __getitem__(self, index):
-        return (self.t.iloc[index], self.y.iloc[index])
-
-    def __len__(self):
-        return self.train_len
-
-
 '''
 df schema:
 ['object_id', 'mjd', 'passband', 'flux', 'flux_err', 'detected', 'ra', 'decl',
@@ -108,20 +77,55 @@ df schema:
 'hostgal_photoz_err', 'distmod', 'mwebv', 'target'],
 
 since target is categorical data, it wouldn't make sense to include this
-in the ODE
+in the ODE.
+
+Aside from actually figuring out what data to give it, the loader runs with
+batch size of 1, but now the infrastructure for actual training needs to be written.
+
+
+for now ND with single object
 '''
 
 
 if __name__ == '__main__':
     BATCH_SIZE = 100
 
-    data_loader = NDim()
-    y_dim = len(data_loader.y.columns)
-    print(data_loader.df.columns)
-    print(data_loader.y.columns)
-    data_generator = inf_generator(data_loader)
+    data_loader = l.NDim(BATCH_SIZE)
 
-    func = ODEFunc(y_dim)
+    obj = data_loader.raw[data_loader.raw['object_id'] == 615]
+    t = obj['mjd']
+    y = df.drop(['object_id', 'mjd'], axis=1)
+
+    t0 = t[0].reshape([1])
+    y0 = y[0].reshape([1])
+
+    # y_dim = len(data_loader.y.columns)
+    # print(data_loader.df.columns)
+    # print(data_loader.y.columns)
+
+    func = ODEFunc(y_dim).double()
+
     print(func)
 
-    # for i, (t, y) in enumerate(data_generator):
+    optimizer = optim.RMSprop(func.parameters(), lr=1e-3)
+
+
+
+    # for i, item in enumerate(data_loader):
+        # t = item[0]
+        # y = item[1]
+        #
+        # if t is None:
+        #     break
+
+    optimizer.zero_grad()
+
+
+
+
+
+
+
+
+
+        print(f'iter: {i}, t: {t}, y: {y}')

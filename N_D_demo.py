@@ -87,9 +87,10 @@ def inf_generator(iterable):
 class NDim(Dataset):
     def __init__(self):
         fns = ['training_set', 'training_set_metadata']
-        df, df_meta = m.read_multi(fns)
+        self.tr, self.tr_meta = m.read_multi(fns)
 
-        self.raw = pd.merge(df, df_meta, on='object_id')
+        self.raw = pd.merge(self.tr, self.tr_meta, on='object_id')
+        self.raw = self.raw.fillna(0)
 
         # is it hacking to give the model obj_id?
         self.obj_ids = self.raw['object_id']
@@ -104,7 +105,7 @@ class NDim(Dataset):
     '''
     What shape should __getitem__ return?
     Returning a single line seems inefficient. Fix later
-
+    For now im batching in here
     '''
     def __getitem__(self, index):
         return (self.t.iloc[index], self.y.iloc[index])
@@ -125,6 +126,8 @@ in the ODE
 
 
 if __name__ == '__main__':
+    BATCH_SIZE = 100
+    
     data_loader = NDim()
     y_dim = len(data_loader.y.columns)
     print(data_loader.df.columns)

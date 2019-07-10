@@ -94,19 +94,6 @@ if __name__ == '__main__':
 
     data_loader = l.NDim(BATCH_SIZE)
 
-    # obj = data_loader.raw[data_loader.raw['object_id'] == 615]
-
-    # t_df = obj['mjd']
-    # y_df = obj.drop(['object_id', 'mjd', 'target'], axis=1)
-    #
-    # t = torch.tensor(t_df.values)
-    # y = torch.tensor(y_df.values)
-
-
-
-    # y_dim = len(data_loader.y.columns)
-    # print(data_loader.df.columns)
-    # print(data_loader.y.columns)
 
     func = ODEFunc(data_loader.y_dim).double()
 
@@ -115,6 +102,7 @@ if __name__ == '__main__':
     optimizer = optim.RMSprop(func.parameters(), lr=1e-3)
 
     for i, item in enumerate(data_loader):
+        optimizer.zero_grad()
         t = item[0]
         y = item[1]
 
@@ -124,13 +112,8 @@ if __name__ == '__main__':
         if t is None:
             break
 
-        optimizer.zero_grad()
-
         batch_t = t[0:BATCH_SIZE]
-        print(batch_t.shape)
-
         batch_y = y[0:BATCH_SIZE]
-        print(batch_t.shape)
 
         pred_y = odeint(func, y0, batch_t)
 
@@ -139,4 +122,4 @@ if __name__ == '__main__':
         optimizer.step()
         with torch.no_grad():
             print(f'loss: {loss}')
-            # print(f'iter: {0}, t: {batch_t}, y: {batch_y}')
+            # print(f'iter: {i}, t: {batch_t}, y: {batch_y}')

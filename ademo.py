@@ -22,7 +22,11 @@ device = torch.device('cuda:' if torch.cuda.is_available() else 'cpu')
 
 # # Instantiate a model
 # # For regular data...
-# anode = ODENet(device, data_dim=2, hidden_dim=16, augment_dim=1)
+
+# are the two dimensions going to be flux and time?
+
+anode = ODENet(device, data_dim=2, hidden_dim=16, augment_dim=1)
+
 # # ... or for images
 # anode = ConvODENet(device, img_size=(1, 28, 28), num_filters=32, augment_dim=1)
 #

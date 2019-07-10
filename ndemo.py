@@ -15,6 +15,8 @@ from torch.utils.data import Dataset, DataLoader
 import loaders as l
 import macros as m
 
+from torchdiffeq import odeint_adjoint as odeint
+
 '''
 Written explanation before writing code.
 1D_demo.py requires that the y data that is being solved for is 1 dimensional,
@@ -88,16 +90,22 @@ for now ND with single object
 
 
 if __name__ == '__main__':
-    BATCH_SIZE = 100
+    BATCH_SIZE = 16
 
     data_loader = l.NDim(BATCH_SIZE)
 
     obj = data_loader.raw[data_loader.raw['object_id'] == 615]
-    t = obj['mjd']
-    y = df.drop(['object_id', 'mjd'], axis=1)
+
+    t_df = obj['mjd']
+    y_df = obj.drop(['object_id', 'mjd', 'target'], axis=1)
+
+    t = torch.tensor(t_df.values)
+    y = torch.tensor(y_df.values)
+
+    y_dim = len(y_df.columns)
 
     t0 = t[0].reshape([1])
-    y0 = y[0].reshape([1])
+    y0 = y[0].reshape([-1])
 
     # y_dim = len(data_loader.y.columns)
     # print(data_loader.df.columns)
@@ -109,8 +117,6 @@ if __name__ == '__main__':
 
     optimizer = optim.RMSprop(func.parameters(), lr=1e-3)
 
-
-
     # for i, item in enumerate(data_loader):
         # t = item[0]
         # y = item[1]
@@ -120,12 +126,17 @@ if __name__ == '__main__':
 
     optimizer.zero_grad()
 
+    batch_t = t[0:BATCH_SIZE]
+    print(batch_t.shape)
 
+    batch_y = y[0:BATCH_SIZE]
+    print(batch_t.shape)
 
+    pred_y = odeint(func, y0, batch_t)
 
-
-
-
-
-
-        print(f'iter: {i}, t: {t}, y: {y}')
+    loss = torch.mean(torch.abs(pred_y - batch_y)).requires_grad_(True)
+    loss.backward()
+    optimizer.step()
+    with torch.no_grad():
+        print(f'loss: {loss}')
+        # print(f'iter: {0}, t: {batch_t}, y: {batch_y}')

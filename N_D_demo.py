@@ -1,6 +1,8 @@
 import os
 import argparse
 import time
+
+import pandas as pd
 import numpy as np
 
 import matplotlib.pyplot as plt
@@ -8,7 +10,10 @@ import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torch.utils.data import Dataset, DataLoader
+
 import loaders as l
+import macros as m
 
 '''
 Written explanation before writing code.
@@ -38,19 +43,19 @@ class ODEFunc(nn.Module):
 
     def __init__(self, y_dimension):
         super(ODEFunc, self).__init__()
-            '''
-            Layer defns here are arbitrary, ideally make them a learned value.
-            A simple improvement could be simply making them a function of the
-            input size. Eg. y_dimension * 10 (although the 10 is arbitrary)
-            '''
+        '''
+        Layer defns here are arbitrary, ideally make them a learned value.
+        A simple improvement could be simply making them a function of the
+        input size. Eg. y_dimension * 10 (although the 10 is arbitrary)
+        '''
 
-            self.net = nn.Sequential(
-                nn.Linear(y_dimension, 50),
-                nn.Tanh(),
-                nn.Linear(50, y_dimension),
-            )
+        self.net = nn.Sequential(
+            nn.Linear(y_dimension, 50),
+            nn.Tanh(),
+            nn.Linear(50, y_dimension),
+        )
 
-            self.net = self.net.double()
+        self.net = self.net.double()
 
     def forward(self, t, y):
         return self.net(y**3)
@@ -59,5 +64,74 @@ class ODEFunc(nn.Module):
 '''
 Next, we need to load in the data from the training set.
 
-Using loaders.py, initialize a DataLoader
+Initialize a DataLoader to iterate over during training.
+
+todo: test df.df w MinMaxScaler vs no scaling
+
 '''
+
+
+def inf_generator(iterable):
+    """Allows training with DataLoaders in a single infinite loop:
+        for i, (x, y) in enumerate(inf_generator(train_loader)):
+        copied from torchdiffeq
+    """
+    iterator = iterable.__iter__()
+    while True:
+        try:
+            yield iterator.__next__()
+        except StopIteration:
+            iterator = iterable.__iter__()
+
+
+class NDim(Dataset):
+    def __init__(self):
+        fns = ['training_set', 'training_set_metadata']
+        df, df_meta = m.read_multi(fns)
+
+        self.raw = pd.merge(df, df_meta, on='object_id')
+
+        # is it hacking to give the model obj_id?
+        self.obj_ids = self.raw['object_id']
+
+        self.df = self.raw.drop(['object_id', 'target'], axis=1)
+
+        self.t = self.df['mjd']  # 1D list of values to calculate Y for in ODE
+        self.y = self.df.drop('mjd', axis=1)
+
+        self.train_len = len(self.df)
+
+    '''
+    What shape should __getitem__ return?
+    Returning a single line seems inefficient. Fix later
+
+    '''
+    def __getitem__(self, index):
+        return (self.t.iloc[index], self.y.iloc[index])
+
+    def __len__(self):
+        return self.train_len
+
+
+'''
+df schema:
+['object_id', 'mjd', 'passband', 'flux', 'flux_err', 'detected', 'ra', 'decl',
+'gal_l', 'gal_b', 'ddf', 'hostgal_specz', 'hostgal_photoz',
+'hostgal_photoz_err', 'distmod', 'mwebv', 'target'],
+
+since target is categorical data, it wouldn't make sense to include this
+in the ODE
+'''
+
+
+if __name__ == '__main__':
+    data_loader = NDim()
+    y_dim = len(data_loader.y.columns)
+    print(data_loader.df.columns)
+    print(data_loader.y.columns)
+    data_generator = inf_generator(data_loader)
+
+    func = ODEFunc(y_dim)
+    print(func)
+
+    # for i, (t, y) in enumerate(data_generator):

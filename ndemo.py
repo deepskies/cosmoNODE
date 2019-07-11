@@ -85,7 +85,10 @@ Aside from actually figuring out what data to give it, the loader runs with
 batch size of 1, but now the infrastructure for actual training needs to be written.
 
 
-for now ND with single object
+Would the ODE learn by training on each object?
+by setting t0, y0 for each unique object_id
+
+
 '''
 
 

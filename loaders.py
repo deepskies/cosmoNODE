@@ -43,11 +43,15 @@ class NDim(Dataset):
 
 	def __getitem__(self, index):
 		try:
-			batch_t = torch.tensor(self.t.iloc[index:index + self.batch_size].values)
-			batch_y = torch.tensor(self.y.iloc[index:index + self.batch_size].values)
+			np_t = self.t.iloc[index:index + self.batch_size].values
+			np_y = self.y.iloc[index:index + self.batch_size].values
+			
+			batch_t = torch.tensor(np_t, dtype=torch.double).reshape(-1, 1)
+			batch_y = torch.tensor(np_y, dtype=torch.double)
 			item = (batch_t, batch_y)
 		except IndexError:
 			item = (None, None)
+
 		return item
 
 	def __len__(self):
@@ -141,9 +145,9 @@ class LSST(Dataset):
 		pass
 
 class FluxLoader(Dataset):
-	def __init__(self, fn='single_obj.csv'):
+	def __init__(self, fn='single_obj'):
 
-		full_df = pd.read_csv('./data/' + fn)
+		full_df = pd.read_csv('./data/' + fn + '.csv')
 
 		self.split_pct = 0.7
 

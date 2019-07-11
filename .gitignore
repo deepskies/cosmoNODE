@@ -1,12 +1,15 @@
 # demo files from original NODE paper.
 /tdeq/
 
-# dont want to upload the whole LSST data 
+# dont want to upload the whole LSST data
 /data/
 .data/
 
 #dont need caches
 /__pycache__/
+
+/anode/__pycache__/
+/anode/__pycache__/training.cpython-36.pyc
 
 # don't want to upload my API key
 kaggle.json

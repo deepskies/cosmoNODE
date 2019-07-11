@@ -12,6 +12,52 @@ import matplotlib.pyplot as plt
 
 import macros as m
 
+
+'''
+What shape should __getitem__ return?
+Returning a single line seems inefficient. Fix later
+For now im batching in __getitem__
+'''
+class NDim(Dataset):
+	def __init__(self, batch_size=16):
+
+		self.batch_size = batch_size
+
+		fns = ['training_set', 'training_set_metadata']
+		self.tr, self.tr_meta = m.read_multi(fns)
+
+		self.raw = pd.merge(self.tr, self.tr_meta, on='object_id')
+		self.raw = self.raw.fillna(0)
+
+		# is it hacking to give the model obj_id?
+		self.obj_ids = self.raw['object_id']
+
+		self.df = self.raw.drop(['object_id', 'target'], axis=1)
+
+		self.t = self.df['mjd']  # 1D list of values to calculate Y for in ODE
+		self.y = self.df.drop('mjd', axis=1)
+
+		self.y_dim = len(self.y.columns)
+
+		self.train_len = len(self.df)
+
+	def __getitem__(self, index):
+		try:
+			np_t = self.t.iloc[index:index + self.batch_size].values
+			np_y = self.y.iloc[index:index + self.batch_size].values
+			
+			batch_t = torch.tensor(np_t, dtype=torch.double).reshape(-1, 1)
+			batch_y = torch.tensor(np_y, dtype=torch.double)
+			item = (batch_t, batch_y)
+		except IndexError:
+			item = (None, None)
+
+		return item
+
+	def __len__(self):
+	    return self.train_len
+
+
 class Quick:
 	def __init__(self, cols=[m.ID, 'mjd', 'flux']):
 		# doesn't read the absurdly large test set sample
@@ -99,9 +145,9 @@ class LSST(Dataset):
 		pass
 
 class FluxLoader(Dataset):
-	def __init__(self, fn='single_obj.csv'):
+	def __init__(self, fn='single_obj'):
 
-		full_df = pd.read_csv('./data/' + fn)
+		full_df = pd.read_csv('./data/' + fn + '.csv')
 
 		self.split_pct = 0.7
 

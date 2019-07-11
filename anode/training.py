@@ -86,7 +86,7 @@ class Trainer():
         epoch_backward_nfes = 0
         for i, (x_batch, y_batch) in enumerate(data_loader):
             self.optimizer.zero_grad()
-            
+
             x_batch = x_batch.to(self.device)
             y_batch = y_batch.to(self.device)
 

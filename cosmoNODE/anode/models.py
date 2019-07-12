@@ -1,9 +1,9 @@
 # huge thanks to https://github.com/EmilienDupont/augmented-neural-odes
 # dude is sick
+from math import pi
 
 import torch
 import torch.nn as nn
-from math import pi
 from torchdiffeq import odeint, odeint_adjoint
 
 

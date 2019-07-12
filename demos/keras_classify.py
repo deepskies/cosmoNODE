@@ -1,18 +1,18 @@
-import demo as d
+import loaders as l
 import macros as m
 
 import tensorflow as tf
 from tensorflow.keras.layers import Dense, Flatten, Conv2D
 from tensorflow.keras import Model
 
-loader = d.Demo()
+loader = l.Demo()
 
 data = loader.merged
 
 input_size = loader.input_size
 output_size = loader.output_size
 
-# "It's not required to set an input shape for the tf.keras.Model 
+# "It's not required to set an input shape for the tf.keras.Model
 # class since the parameters are set the first time input is passed to the layer."
 
 class MyModel(Model):

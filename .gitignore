@@ -1,19 +1,11 @@
-# demo files from original NODE paper.
-/tdeq/
-
 # dont want to upload the whole LSST data
-/data/
-.data/
+cosmoNODE/data/
 
 #dont need caches
 /__pycache__/
 
-/anode/__pycache__/
-/anode/__pycache__/training.cpython-36.pyc
+cosmoNODE/anode/__pycache__/
+cosmoNODE/anode/__pycache__/training.cpython-36.pyc
 
 # don't want to upload my API key
 kaggle.json
-
-/experiment1/
-
-ode_mnist.py

@@ -12,5 +12,8 @@ Terminology:
 We define the game space of a discretized game to be the set of all pairs
 of actions and observations.
 
+We must then define the action space as a differential equation wrt time.
+The same goes for
+
 
 '''

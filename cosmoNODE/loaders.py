@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
-import macros as m
+from cosmoNODE import macros as m
 
 
 '''
@@ -45,7 +45,7 @@ class NDim(Dataset):
 		try:
 			np_t = self.t.iloc[index:index + self.batch_size].values
 			np_y = self.y.iloc[index:index + self.batch_size].values
-			
+
 			batch_t = torch.tensor(np_t, dtype=torch.double).reshape(-1, 1)
 			batch_y = torch.tensor(np_y, dtype=torch.double)
 			item = (batch_t, batch_y)

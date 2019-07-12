@@ -1,9 +1,11 @@
-import loaders as l
-import macros as m
 
 import tensorflow as tf
 from tensorflow.keras.layers import Dense, Flatten, Conv2D
 from tensorflow.keras import Model
+
+from cosmoNODE import loaders as l
+from cosmoNODE import macros as m
+
 
 loader = l.Demo()
 

@@ -1,8 +1,10 @@
 # dont want to upload the whole LSST data
-cosmoNODE/data/
+/data/
 
 #dont need caches
 /__pycache__/
+
+cosmoNODE/__pycache__/
 
 cosmoNODE/anode/__pycache__/
 cosmoNODE/anode/__pycache__/training.cpython-36.pyc

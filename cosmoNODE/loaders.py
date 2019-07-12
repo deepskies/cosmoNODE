@@ -18,6 +18,7 @@ What shape should __getitem__ return?
 Returning a single line seems inefficient. Fix later
 For now im batching in __getitem__
 '''
+
 class NDim(Dataset):
 	def __init__(self, batch_size=16):
 
@@ -82,7 +83,7 @@ class Quick:
 
 		# self.grouped = self.merged.groupby(by=[m.ID, 'passband'], as_index=False)
 
-		# self.unscaled_objs = [obj[1] for obj in self.grouped]
+		self.unscaled_objs = [obj[1] for obj in self.grouped]
 
 	def graph_test(self):
 		graph_object(self.unscaled_objs, 234)

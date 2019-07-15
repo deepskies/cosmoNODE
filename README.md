@@ -21,3 +21,15 @@ my hypothesis is that there will be a measurable improvement.
 	+ (semi) simple_torch.py
 
 	+ ode_demo.py
+
+# Repository Overview
+Neural differential equations have not been applied to many fields of ML.
+This repository includes astronomical applications of neural differentials.
+We implement baseline implementations for classification to cross validate
+the NODE and ANODE algorithms.
+A
+
+## requirements:
+	- torchdiffeq by Chen et all (2018)
+	- augmented neural ODEs
+	- stuff in requirements.txt

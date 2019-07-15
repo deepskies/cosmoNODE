@@ -5,7 +5,7 @@ from anode.models import ODENet
 from anode.conv_models import ConvODENet
 from anode.training import Trainer
 
-import loaders as l
+from cosmoNODE import loaders as l
 
 
 '''

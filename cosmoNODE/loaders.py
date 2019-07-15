@@ -1,5 +1,8 @@
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+
+import tensorflow as tf
 
 import torch
 from torch.utils.data import Dataset
@@ -7,10 +10,7 @@ from torch.utils.data import Dataset
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 
-import tensorflow as tf
-import matplotlib.pyplot as plt
-
-import macros as m
+from cosmoNODE import macros as m
 
 
 '''
@@ -18,6 +18,7 @@ What shape should __getitem__ return?
 Returning a single line seems inefficient. Fix later
 For now im batching in __getitem__
 '''
+
 class NDim(Dataset):
 	def __init__(self, batch_size=16):
 
@@ -45,7 +46,7 @@ class NDim(Dataset):
 		try:
 			np_t = self.t.iloc[index:index + self.batch_size].values
 			np_y = self.y.iloc[index:index + self.batch_size].values
-			
+
 			batch_t = torch.tensor(np_t, dtype=torch.double).reshape(-1, 1)
 			batch_y = torch.tensor(np_y, dtype=torch.double)
 			item = (batch_t, batch_y)
@@ -65,7 +66,6 @@ class Quick:
 		self.fns = ['training_set', 'training_set_metadata']
 		self.df, self.meta_df = m.read_multi(self.fns)
 
-
 		self.df = self.df[cols]
 
 		self.df_grouped = self.df.groupby(by=m.ID, as_index=False)
@@ -82,7 +82,7 @@ class Quick:
 
 		# self.grouped = self.merged.groupby(by=[m.ID, 'passband'], as_index=False)
 
-		# self.unscaled_objs = [obj[1] for obj in self.grouped]
+		self.unscaled_objs = [obj[1] for obj in self.df_grouped]
 
 	def graph_test(self):
 		graph_object(self.unscaled_objs, 234)

@@ -11,3 +11,7 @@ cosmoNODE/anode/__pycache__/training.cpython-36.pyc
 
 # don't want to upload my API key
 kaggle.json
+
+cosmoNODE.egg-info/
+dist/
+build/

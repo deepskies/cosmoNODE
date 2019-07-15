@@ -66,7 +66,6 @@ class Quick:
 		self.fns = ['training_set', 'training_set_metadata']
 		self.df, self.meta_df = m.read_multi(self.fns)
 
-
 		self.df = self.df[cols]
 
 		self.df_grouped = self.df.groupby(by=m.ID, as_index=False)
@@ -83,7 +82,7 @@ class Quick:
 
 		# self.grouped = self.merged.groupby(by=[m.ID, 'passband'], as_index=False)
 
-		self.unscaled_objs = [obj[1] for obj in self.grouped]
+		self.unscaled_objs = [obj[1] for obj in self.df_grouped]
 
 	def graph_test(self):
 		graph_object(self.unscaled_objs, 234)

@@ -8,8 +8,18 @@ import torch.nn.functional as F
 import numpy
 
 from cosmoNODE.loaders import Anode as A
+'''
+The following program is a 1D convolutional neural network
+that defines the kernel_size recursively.
+Currently, I'm feeding in data that is 2D but I flatten it.
+This is problematic and needs to be fixed.
 
-class Net(nn.Module):
+# TODO:
+    - port to 2DConv
+    - test on MNIST
+'''
+
+class Conv1DNet(nn.Module):
     def __init__(self, input_dim=704, output_dim=14):
         super(Net, self).__init__()
         self.in_dim = input_dim
@@ -48,7 +58,9 @@ class Net(nn.Module):
 
     def get_layers(self):
         prev = self.x
-        for ksize in self.ksizes:
+        prev_channels = 1
+        channels = 1
+        for i, ksize in enumerate(self.ksizes):
             layer = nn.Conv1d(1, 1, kernel_size=ksize)
             prev = layer(prev)
             self.dims.append(prev.shape)
@@ -64,11 +76,13 @@ if __name__ == '__main__':
 
     x, y = loader.__getitem__(0)
     flat_x = x.flatten()
-    net = Net(flat_x.shape[0], y.shape[0]).double()
+    net = Conv1DNet(flat_x.shape[0], y.shape[0]).double()
     net.train()
 
     criterion = nn.MSELoss()
     optimizer = optim.RMSprop(net.parameters(), lr=1e-3)
+
+    logging_rate = 50
 
     for i in range(1, epochs + 1):
         for j, (x, y) in enumerate(loader):
@@ -79,13 +93,13 @@ if __name__ == '__main__':
                 reshaped_x = flat_x.reshape([1, 1, -1])
 
             pred = net(reshaped_x)
-            print(f'p: {pred}')
-            print(f'y: {y}')
 
             loss = criterion(y, pred)
 
             loss.backward()
             optimizer.step()
+            if j % 50 == 0:
+                with torch.no_grad():
+                    print(f'pred: {pred} \n y: {y} \n loss: {loss} \n')
 
-            with torch.no_grad():
-                print(f'pred: {pred} \n loss {loss}')
+    torch.save(net.state_dict(), './demos/baselines/saved_models/conv_classify')

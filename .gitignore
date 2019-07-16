@@ -6,6 +6,8 @@ demos/data/
 
 cosmoNODE/__pycache__/
 
+demos/baselines/__pycache__/
+
 cosmoNODE\anode\__pycache__
 cosmoNODE/anode/__pycache__/
 cosmoNODE/anode/__pycache__/training.cpython-36.pyc

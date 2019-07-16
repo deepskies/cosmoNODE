@@ -26,6 +26,9 @@ class Anode(Dataset):
 
 			self.df = self.raw[[m.ID] + df_cols]
 			self.df_meta = self.raw_meta[['object_id', 'target']].sort_values(by=m.ID)
+			val_counts = self.df['object_id'].value_counts()
+			self.seq_max_len = val_counts.max()
+			self.input_dim = len(df_cols)
 
 			self.classes = self.df_meta['target'].unique()
 			# print(f'classes: {self.classes}, type {type(self.classes)}')
@@ -35,6 +38,7 @@ class Anode(Dataset):
 
 			self.id_group = self.df.groupby(by=m.ID, as_index=False)
 			self.objs = [elt for elt in self.id_group]
+
 			self.obj_count = len(self.objs)
 			self.tups = []
 			self.create_tuples()
@@ -50,17 +54,16 @@ class Anode(Dataset):
 	def create_tuples(self):
 		# redo this to not loop but use a map or lambda
 		for obj in self.objs:
-			# print(obj)
+
 			obj_id, obj_data = obj
-			# print(obj_data)
-			without_id = obj_data.drop('object_id', axis=1)
-			# print(without_id)
-			obj_data_tensor = torch.tensor(without_id.values, dtype=torch.double)
+
+			x_tensor = self.pad(obj_data)
 
 			obj_meta = self.df_meta[self.df_meta['object_id'] == obj_id]
 			obj_target_class = obj_meta['target'].iloc[0]
+			
 			y_tensor = self.class_to_tensor(obj_target_class)
-			self.tups.append((obj_data_tensor, y_tensor))
+			self.tups.append((x_tensor, y_tensor))
 
 	def class_to_tensor(self, target):
 		class_index = self.class_list.index(target)
@@ -68,6 +71,16 @@ class Anode(Dataset):
 		target_tensor[class_index] = 1
 		return target_tensor
 
+	def pad(self, obj_data):
+		obj_len = len(obj_data)
+		cat_len = self.seq_max_len - obj_len
+
+		padding = torch.zeros([cat_len, self.input_dim], dtype=torch.double)
+
+		without_id = obj_data.drop('object_id', axis=1)
+		obj_data_tensor = torch.tensor(without_id.values, dtype=torch.double)
+		x_tensor = torch.cat([obj_data_tensor, padding])
+		return x_tensor
 
 class NDim(Dataset):
 	def __init__(self, batch_size=16):

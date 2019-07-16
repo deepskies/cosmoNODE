@@ -65,7 +65,7 @@ class Anode(Dataset):
 
 	def class_to_tensor(self, target):
 		class_index = self.class_list.index(target)
-		target_tensor = torch.zeros(14)
+		target_tensor = torch.zeros(14, dtype=torch.double)
 		target_tensor[class_index] = 1
 		return target_tensor
 

@@ -37,7 +37,7 @@ class Trainer():
     """
     def __init__(self, model, optimizer, device, classification=False,
                  print_freq=10, record_freq=10, verbose=True, save_dir=None):
-        self.model = model
+        self.model = model.double()
         self.optimizer = optimizer
         self.classification = classification
         self.device = device
@@ -87,9 +87,10 @@ class Trainer():
         for i, (x_batch, y_batch) in enumerate(data_loader):
             self.optimizer.zero_grad()
 
-            x_batch = x_batch.to(self.device)
-            y_batch = y_batch.to(self.device)
-
+            x_batch = x_batch.reshape(-1, 1).to(self.device)
+            y_batch = y_batch.reshape(-1, 1).to(self.device)
+            # print(x_batch.dtype)
+            # print(y_batch.dtype)
             y_pred = self.model(x_batch)
 
             # ResNets do not have an NFE attribute

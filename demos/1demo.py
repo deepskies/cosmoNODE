@@ -67,7 +67,7 @@ class ODEFunc(nn.Module):
 
 
 def fl():
-    flux_loader = l.FluxLoader()
+    flux_loader = l.FluxLoader(fn='training_set')
     return flux_loader
 
 

@@ -27,9 +27,11 @@ Neural differential equations have not been applied to many fields of ML.
 This repository includes astronomical applications of neural differentials.
 We implement baseline implementations for classification to cross validate
 the NODE and ANODE algorithms.
-A
+
 
 ## requirements:
 	- torchdiffeq by Chen et all (2018)
 	- augmented neural ODEs
 	- stuff in requirements.txt
+	- [Kaggle PLAsTiCC-2018 data](https://www.kaggle.com/c/PLAsTiCC-2018/data)
+		- place this in ./demos/data/

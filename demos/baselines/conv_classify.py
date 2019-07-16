@@ -32,10 +32,11 @@ class Net(nn.Module):
 
     def forward(self, x):
         for i, layer in enumerate(self.model):
-            if i == self.real_layer_count - 1:
+            if i == self.real_layer_count - 2:
                 break
             x = F.relu(layer(x))
-        x = nn.Softmax(self.model[i](x.flatten()))
+        x = self.model[i](x.flatten())
+        x = self.model[-1](x)  # softmax
         return x.double()
 
     def get_ksizes(self):
@@ -54,6 +55,7 @@ class Net(nn.Module):
             self.layers.append(layer)
         print(self.dims)
         self.layers.append(nn.Linear(self.dims[-1][-1], self.out_dim))
+        self.layers.append(nn.Softmax(dim=0))
 
 
 if __name__ == '__main__':
@@ -61,8 +63,8 @@ if __name__ == '__main__':
     loader = A()
 
     x, y = loader.__getitem__(0)
-
-    net = Net(x.shape[0], y.shape[0]).double()
+    flat_x = x.flatten()
+    net = Net(flat_x.shape[0], y.shape[0]).double()
     net.train()
 
     optimizer = optim.RMSprop(net.parameters(), lr=1e-3)
@@ -76,6 +78,8 @@ if __name__ == '__main__':
                 reshaped_x = flat_x.reshape([1, 1, -1])
 
             pred = net(reshaped_x)
+            print(f'p: {pred}')
+            print(f'y: {y}')
 
             loss = y - pred
 

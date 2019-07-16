@@ -44,8 +44,6 @@ class Anode(Dataset):
 			self.create_tuples()
 
 	def __getitem__(self, index):
-		# x = torch.tensor(item[0], dtype=torch.double)
-		# y = torch.tensor(item[1], dtype=torch.double)
 		return self.tups[index]
 
 	def __len__(self):
@@ -61,7 +59,7 @@ class Anode(Dataset):
 
 			obj_meta = self.df_meta[self.df_meta['object_id'] == obj_id]
 			obj_target_class = obj_meta['target'].iloc[0]
-			
+
 			y_tensor = self.class_to_tensor(obj_target_class)
 			self.tups.append((x_tensor, y_tensor))
 
@@ -81,6 +79,7 @@ class Anode(Dataset):
 		obj_data_tensor = torch.tensor(without_id.values, dtype=torch.double)
 		x_tensor = torch.cat([obj_data_tensor, padding])
 		return x_tensor
+
 
 class NDim(Dataset):
 	def __init__(self, batch_size=16):
@@ -152,7 +151,6 @@ class Quick:
 		graph_object(self.unscaled_objs, 234)
 
 
-# pytorch loader
 class LSST(Dataset):
 	def __init__(self, data_class=Quick(cols=[m.ID, 'mjd', 'flux'])):
 
@@ -214,6 +212,7 @@ class LSST(Dataset):
 			obj_data = obj[1]
 			obj_target = self.data_class.meta_df[self.data_class.meta_df['target' == obj_id]]
 			self.tuples.append((obj_data, obj_target))
+
 
 class FluxLoader(Dataset):
 	def __init__(self, fn='single_obj'):

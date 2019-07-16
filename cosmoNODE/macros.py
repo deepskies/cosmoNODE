@@ -14,10 +14,12 @@ band_color_map = {0 : 'r',
 				 4 : 'm',
 				 5 : 'y'}
 
-def read_multi(fns):
+def read_multi(fns, fillna=False):
 	dfs = []
 	for fn in fns:
 		df = pd.read_csv(DATA + fn + '.csv')
+		if fillna:
+			df = df.fillna(0)
 		dfs.append(df)
 	return dfs
 

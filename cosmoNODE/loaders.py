@@ -22,10 +22,12 @@ For now im batching in __getitem__
 class Anode(Dataset):
 	def __init__(self, df_cols=['mjd', 'flux']):
 			fns = ['training_set', 'training_set_metadata']
-			self.raw, self.raw_meta = m.read_multi(fns)
+			self.raw, self.raw_meta = m.read_multi(fns, fillna=True)
 
 			self.df = self.raw[[m.ID] + df_cols]
 			self.df_meta = self.raw_meta[['object_id', 'target']].sort_values(by=m.ID)
+
+			self.class_list = self.df_meta['target'].unique().sort().tolist()
 
 			self.id_group = self.df.groupby(by=m.ID, as_index=False)
 			self.objs = [elt for elt in self.id_group]
@@ -34,10 +36,9 @@ class Anode(Dataset):
 			self.create_tuples()
 
 	def __getitem__(self, index):
-		item = self.tups[index]
-		x = torch.tensor(item[0], dtype=torch.double)
-		y = torch.tensor(item[1], dtype=torch.double)
-		return (x, y)
+		# x = torch.tensor(item[0], dtype=torch.double)
+		# y = torch.tensor(item[1], dtype=torch.double)
+		return self.tups[index]
 
 	def __len__(self):
 		return self.obj_count
@@ -45,10 +46,19 @@ class Anode(Dataset):
 	def create_tuples(self):
 		# redo this to not loop but use a map or lambda
 		for obj in self.objs:
-			obj_id = obj[0]
-			obj_data = obj[1]
+			obj_id, obj_data = obj
+			obj_data_tensor = torch.tensor(obj_data.values, torch.double)
+
 			obj_meta = self.df_meta[self.df_meta['object_id'] == obj_id]
-			self.tups.append((obj_data, obj_meta['target'].iloc[0]))
+			obj_target_class = obj_meta['target'].iloc[0]
+			y_tensor = self.class_to_tensor(obj_target_class)
+			self.tups.append((obj_data_tensor, y_tensor))
+
+	def class_to_tensor(self, target):
+		class_index = self.class_list.index(target)
+		target_tensor = torch.zeros(14)
+		target_tensor[class_index] = 1
+		return target_tensor
 
 
 class NDim(Dataset):

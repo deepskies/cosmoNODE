@@ -25,7 +25,7 @@ class Anode(Dataset):
 			self.raw, self.raw_meta = m.read_multi(fns)
 
 			self.df = self.raw[[m.ID] + df_cols]
-			self.df_meta = self.raw_meta[[]].sort_values(by=m.ID)
+			self.df_meta = self.raw_meta[['object_id', 'target']].sort_values(by=m.ID)
 
 			self.id_group = self.df.groupby(by=m.ID, as_index=False)
 			self.objs = [elt for elt in self.id_group]
@@ -47,7 +47,7 @@ class Anode(Dataset):
 		for obj in self.objs:
 			obj_id = obj[0]
 			obj_data = obj[1]
-			obj_meta = self.df_meta[[self.df_meta['object'] == obj_id]]
+			obj_meta = self.df_meta[self.df_meta['object_id'] == obj_id]
 			self.tups.append((obj_data, obj_meta['target'].iloc[0]))
 
 

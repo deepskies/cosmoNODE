@@ -19,6 +19,38 @@ Returning a single line seems inefficient. Fix later
 For now im batching in __getitem__
 '''
 
+class Anode(Dataset):
+	def __init__(self, df_cols=['mjd', 'flux']):
+			fns = ['training_set', 'training_set_metadata']
+			self.raw, self.raw_meta = m.read_multi(fns)
+
+			self.df = self.raw[[m.ID] + df_cols]
+			self.df_meta = self.raw_meta[[]].sort_values(by=m.ID)
+
+			self.id_group = self.df.groupby(by=m.ID, as_index=False)
+			self.objs = [elt for elt in self.id_group]
+			self.obj_count = len(self.objs)
+			self.tups = []
+			self.create_tuples()
+
+	def __getitem__(self, index):
+		item = self.tups[index]
+		x = torch.tensor(item[0], dtype=torch.double)
+		y = torch.tensor(item[1], dtype=torch.double)
+		return (x, y)
+
+	def __len__(self):
+		return self.obj_count
+
+	def create_tuples(self):
+		# redo this to not loop but use a map or lambda
+		for obj in self.objs:
+			obj_id = obj[0]
+			obj_data = obj[1]
+			obj_meta = self.df_meta[[self.df_meta['object'] == obj_id]]
+			self.tups.append((obj_data, obj_meta['target'].iloc[0]))
+
+
 class NDim(Dataset):
 	def __init__(self, batch_size=16):
 
@@ -65,6 +97,7 @@ class Quick:
 
 		self.fns = ['training_set', 'training_set_metadata']
 		self.df, self.meta_df = m.read_multi(self.fns)
+		self.raw = self.df
 
 		self.df = self.df[cols]
 
@@ -90,7 +123,7 @@ class Quick:
 
 # pytorch loader
 class LSST(Dataset):
-	def __init__(self, data_class=Quick()):
+	def __init__(self, data_class=Quick(cols=[m.ID, 'mjd', 'flux'])):
 
 		self.data_class = data_class
 
@@ -114,6 +147,7 @@ class LSST(Dataset):
 
 		self.input_shape = self.item[0].shape
 		self.output_shape = len(self.data_class.class_list)  # type() == torch.Size(14)
+		self.tuples = []
 
 		print('torch LSST Dataset initialized\n')
 
@@ -143,14 +177,19 @@ class LSST(Dataset):
 		# meta = self.data_class.
 
 		pass
+	def make_tuples(self):
+		for obj in self.data_class.df_grouped:
+			obj_id = obj[0]
+			obj_data = obj[1]
+			obj_target = self.data_class.meta_df[self.data_class.meta_df['target' == obj_id]]
+			self.tuples.append((obj_data, obj_target))
 
 class FluxLoader(Dataset):
 	def __init__(self, fn='single_obj'):
 
-		full_df = pd.read_csv('./data/' + fn + '.csv')
+		full_df = pd.read_csv('./demos/data/' + fn + '.csv')
 
 		self.split_pct = 0.7
-
 
 		self.df = full_df[['object_id', 'mjd', 'flux']]
 
@@ -163,8 +202,6 @@ class FluxLoader(Dataset):
 		self.t_items = [torch.tensor(item.values) for item in self.items]
 
 		# self.padded_items = torch.nn.utils.rnn.pad_sequence(self.t_items, batch_first=True)
-
-
 		# print(self.padded_items[0])
 
 		self.train_len = len(self.items)

@@ -69,12 +69,16 @@ class ODEFunc(nn.Module):
         # Forward pass of model corresponds to one function evaluation, so
         # increment counter
         self.nfe += 1
+        print(x.shape)
+        print(x)
         if self.time_dependent:
             # Shape (batch_size, 1)
             t_vec = torch.ones(x.shape[0], 1).to(self.device) * t
             # Shape (batch_size, data_dim + 1)
+            t_vec = t_vec.double()
             t_and_x = torch.cat([t_vec, x], 1)
             # Shape (batch_size, hidden_dim)
+
             out = self.fc1(t_and_x)
         else:
             out = self.fc1(x)
@@ -145,8 +149,10 @@ class ODEBlock(nn.Module):
                 x_aug = torch.cat([x, aug], 1)
             else:
                 # Add augmentation
-                aug = torch.zeros(x.shape[0], self.odefunc.augment_dim).to(self.device)
+                aug = torch.zeros(x.shape[0], self.odefunc.augment_dim).to(self.device).double()
                 # Shape (batch_size, data_dim + augment_dim)
+                print(x.dtype)
+                print(aug.dtype)
                 x_aug = torch.cat([x, aug], 1)
         else:
             x_aug = x

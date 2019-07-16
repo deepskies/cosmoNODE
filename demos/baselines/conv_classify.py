@@ -67,6 +67,7 @@ if __name__ == '__main__':
     net = Net(flat_x.shape[0], y.shape[0]).double()
     net.train()
 
+    criterion = nn.MSELoss()
     optimizer = optim.RMSprop(net.parameters(), lr=1e-3)
 
     for i in range(1, epochs + 1):
@@ -81,7 +82,7 @@ if __name__ == '__main__':
             print(f'p: {pred}')
             print(f'y: {y}')
 
-            loss = y - pred
+            loss = criterion(y, pred)
 
             loss.backward()
             optimizer.step()

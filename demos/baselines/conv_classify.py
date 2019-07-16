@@ -7,7 +7,7 @@ import torch.nn.functional as F
 
 import numpy
 
-# from cosmoNODE.loaders import Anode as A
+from cosmoNODE.loaders import Anode as A
 
 class Net(nn.Module):
     def __init__(self, input_dim=704, output_dim=14):
@@ -23,7 +23,10 @@ class Net(nn.Module):
         self.get_ksizes()
 
         self.layers = []
+        self.dims = []
+        self.x = torch.ones([1, 1, self.in_dim])
         self.get_layers()
+
         self.real_layer_count = len(self.layers)
         self.model = nn.ModuleList(self.layers)
 
@@ -32,7 +35,7 @@ class Net(nn.Module):
             if i == self.real_layer_count - 1:
                 break
             x = F.relu(layer(x))
-        x = F.Softmax(self.model[i](x.Flatten())) 
+        x = nn.Softmax(self.model[i](x.flatten()))
         return x.double()
 
     def get_ksizes(self):
@@ -43,9 +46,41 @@ class Net(nn.Module):
             self.ksizes.append(ksize)
 
     def get_layers(self):
+        prev = self.x
         for ksize in self.ksizes:
-            self.layers.append(nn.Conv1d(1, 1, kernel_size=ksize))
-        self.layers.append(nn.Linear(self.in_dim, self.out_dim))
-# if __name__ == '__main__':
-#     net = Net()
-#     loader = A()
+            layer = nn.Conv1d(1, 1, kernel_size=ksize)
+            prev = layer(prev)
+            self.dims.append(prev.shape)
+            self.layers.append(layer)
+        print(self.dims)
+        self.layers.append(nn.Linear(self.dims[-1][-1], self.out_dim))
+
+
+if __name__ == '__main__':
+    epochs = 1
+    loader = A()
+
+    x, y = loader.__getitem__(0)
+
+    net = Net(x.shape[0], y.shape[0]).double()
+    net.train()
+
+    optimizer = optim.RMSprop(net.parameters(), lr=1e-3)
+
+    for i in range(1, epochs + 1):
+        for j, (x, y) in enumerate(loader):
+            optimizer.zero_grad()
+
+            with torch.no_grad():
+                flat_x = x.flatten()
+                reshaped_x = flat_x.reshape([1, 1, -1])
+
+            pred = net(reshaped_x)
+
+            loss = y - pred
+
+            loss.backward()
+            optimizer.step()
+
+            with torch.no_grad():
+                print(f'pred: {pred} \n loss {loss}')

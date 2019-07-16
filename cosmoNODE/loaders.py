@@ -27,7 +27,11 @@ class Anode(Dataset):
 			self.df = self.raw[[m.ID] + df_cols]
 			self.df_meta = self.raw_meta[['object_id', 'target']].sort_values(by=m.ID)
 
-			self.class_list = self.df_meta['target'].unique().sort().tolist()
+			self.classes = self.df_meta['target'].unique()
+			# print(f'classes: {self.classes}, type {type(self.classes)}')
+			self.classes.sort()
+			# print(f'sorted: {self.classes}')
+			self.class_list = self.classes.tolist()
 
 			self.id_group = self.df.groupby(by=m.ID, as_index=False)
 			self.objs = [elt for elt in self.id_group]
@@ -46,8 +50,12 @@ class Anode(Dataset):
 	def create_tuples(self):
 		# redo this to not loop but use a map or lambda
 		for obj in self.objs:
+			# print(obj)
 			obj_id, obj_data = obj
-			obj_data_tensor = torch.tensor(obj_data.values, torch.double)
+			# print(obj_data)
+			without_id = obj_data.drop('object_id', axis=1)
+			# print(without_id)
+			obj_data_tensor = torch.tensor(without_id.values, dtype=torch.double)
 
 			obj_meta = self.df_meta[self.df_meta['object_id'] == obj_id]
 			obj_target_class = obj_meta['target'].iloc[0]

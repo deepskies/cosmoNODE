@@ -12,7 +12,13 @@ from sklearn.model_selection import train_test_split
 
 from cosmoNODE import macros as m
 
+'''
+Anode Dataset was written 7/15/19 and is probably the best one so far,
+but there are things that need to be added and fixed.
+For one, I think that it could be more malleable to channels, treating passbands
+as channels.
 
+'''
 class Anode(Dataset):
 	def __init__(self, df_cols=['mjd', 'flux']):
 			fns = ['training_set', 'training_set_metadata']
@@ -56,7 +62,7 @@ class Anode(Dataset):
 
 	def __getitem__(self, index):
 		x, y = self.tups[index]
-		x = x.reshape(1, 1, x.shape[0], x.shape[1])
+		x = x.reshape(1, x.shape[0], x.shape[1])
 		return (x, y)
 
 	def __len__(self):

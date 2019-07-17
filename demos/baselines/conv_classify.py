@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
+from torch.utils.data import DataLoader
 
 import numpy as np
 
@@ -20,17 +21,18 @@ This is problematic and needs to be fixed.
 '''
 
 class Conv1DNet(nn.Module):
-    def __init__(self, input_dim=704, output_dim=14):
+    def __init__(self, input_dim=704, output_dim=14, batching_size=12):
         super(Conv1DNet, self).__init__()
         self.in_dim = input_dim
         self.out_dim = output_dim
+        self.batching_size = batching_size
 
         self.delta = input_dim - output_dim
         self.ksizes = get_ksizes(self.delta)
 
         self.layers = []
         self.dims = []
-        self.x = torch.ones([1, 1, self.in_dim])
+        self.x = torch.ones([self.batching_size, 1, self.in_dim])
         self.get_layers()
 
         self.real_layer_count = len(self.layers)
@@ -41,13 +43,18 @@ class Conv1DNet(nn.Module):
             if i == self.real_layer_count - 3:
                 break
             x = F.relu(layer(x))
+            # print(x.shape)
 
-        x = x.view(1,-1)
-        x = self.model[-3](x)
-        x = self.model[-2](x)
-        x = self.model[-1](x)
-        # x = self.model[i](x.flatten())
-        # x = self.model[-1](x)  # softmax
+        x = x.view(self.batching_size, 1, -1)  # flatten to 1d before pooling
+        # print(x.shape)
+        x = self.model[-3](x)  # pool_layer
+
+        x = x.view(self.batching_size, -1)
+
+        x = self.model[-2](x)  # linear
+        # print(x.shape)
+        x = self.model[-1](x)  # softmax
+
         return x.double()
 
     def get_layers(self):
@@ -70,13 +77,20 @@ class Conv1DNet(nn.Module):
             self.layers.append(layer)
 
         print(self.dims)
-        conv_out = self.dims[-1][-1] * channels
-        pool_size = math.floor(math.log2(conv_out))
-        pool_layer = nn.MaxPool1d(pool_size)
-        pool_out = pool_layer(prev).shape[-1]
+
+        numel_wo_batch = self.dims[-1][1] * self.dims[-1][2]
+        print(numel_wo_batch)
+        # conv_out = self.dims[-1].numel()
+        pool_ksize = math.floor(math.log2(numel_wo_batch))
+
+        pool_layer = nn.MaxPool1d(pool_ksize)
+
+        pool_out = pool_layer(prev.view(self.batching_size, 1, -1)).shape
+
+        linear_input_dim = pool_out[-1]
 
         self.layers.append(pool_layer)
-        self.layers.append(nn.Linear(pool_out * channels, self.out_dim))
+        self.layers.append(nn.Linear(linear_input_dim, self.out_dim))
         self.layers.append(nn.Softmax(dim=-1))
 
 
@@ -113,34 +127,36 @@ def get_ksizes(delta):
 
 if __name__ == '__main__':
     epochs = 1
-    loader = A()
-
-    x, y = loader.__getitem__(0)
+    dataset = A()
+    x, y = dataset.__getitem__(0)
     flat_x = x.flatten()
-    net = Conv1DNet(flat_x.shape[0], y.shape[0]).double()
+    print(f'input_dim: {flat_x.shape[0]}')
+
+    batching_size = math.floor(math.log2(len(dataset)))
+    data_loader = DataLoader(dataset, batch_size=batching_size)
+
+    net = Conv1DNet(flat_x.shape[0], y.shape[0], batching_size).double()
     net.train()
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=1e-3)
 
-    logging_rate = 50
+    logging_rate = 10
+    losses = []
 
     for i in range(1, epochs + 1):
-        for j, (x, y) in enumerate(loader):
+        for j, (x, y) in enumerate(data_loader):
             optimizer.zero_grad()
-
-            with torch.no_grad():
-                flat_x = x.flatten()
-                reshaped_x = flat_x.reshape([1, 1, -1])
 
             pred = net(x)
 
-            loss = criterion(y, pred)
+            loss = criterion(pred, torch.max(y.long(), 1)[1])
 
             loss.backward()
             optimizer.step()
             if j % 50 == 0:
                 with torch.no_grad():
+                    losses.append(loss)
                     print(f'pred: {pred} \n y: {y} \n loss: {loss} \n')
 
     torch.save(net.state_dict(), './demos/baselines/saved_models/conv_classify.pt')

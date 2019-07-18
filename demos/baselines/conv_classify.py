@@ -127,7 +127,6 @@ def get_ksizes(delta):
 
 
 if __name__ == '__main__':
-
     # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     epochs = 2
 
@@ -199,5 +198,9 @@ if __name__ == '__main__':
             total += y.size(0)
             correct += (predicted == y).sum().item()
 
+
     print('Accuracy of the network on the 10000 test images: %d %%' % (100 * correct / total))
     # torch.save(net.state_dict(), './demos/baselines/saved_models/conv_classify.pt')
+    # print(losses)
+    torch.save(net.state_dict(), './demos/baselines/saved_models/conv_classify.pt')
+

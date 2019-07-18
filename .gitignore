@@ -10,6 +10,8 @@ demos/baselines/__pycache__/
 demos/baselines/saved_models/
 demos/baselines/conv_mnist.py
 demos/notebooks/.ipynb_checkpoints/
+demos/notebooks/Untitled.ipynb
+demos/ode_models
 
 \anode\__pycache__
 cosmoNODE/anode/__pycache__/

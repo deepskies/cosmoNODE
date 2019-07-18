@@ -23,6 +23,6 @@ if __name__ == '__main__':
     conv_net = ConvODENet(device, img_size=(1, 352, 2), num_filters=32, output_dim=14, augment_dim=1)
     # conv_net = ConvODENet(device, img_size=(1, 352, 2), num_filters=32, augment_dim=1).double()
     optimizer = torch.optim.Adam(conv_net.parameters(), lr=1e-2)
-    trainer = Trainer(conv_net, optimizer, device, classification=True, save_dir=('ode_models', 'light_curve0'))
+    trainer = Trainer(conv_net, optimizer, device, classification=True, save_dir=('demos/ode_models', '/light_curve0'))
     # trainer = Trainer(conv_net, optimizer, device, classification=True)
     trainer.train(dataloader, num_epochs=10)

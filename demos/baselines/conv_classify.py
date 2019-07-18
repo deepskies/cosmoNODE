@@ -5,6 +5,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
+from torch.utils.data.sampler import SubsetRandomSampler
 
 import numpy as np
 
@@ -126,14 +127,34 @@ def get_ksizes(delta):
 
 
 if __name__ == '__main__':
-    epochs = 1
+    epochs = 10
     dataset = A()
     x, y = dataset.__getitem__(0)
     flat_x = x.flatten()
     print(f'input_dim: {flat_x.shape[0]}')
 
     batching_size = math.floor(math.log2(len(dataset)))
-    data_loader = DataLoader(dataset, batch_size=batching_size)
+
+    validation_split = .5
+    shuffle_dataset = True
+    random_seed= 42
+
+    # Creating data indices for training and validation splits:
+    dataset_size = len(dataset)
+    indices = list(range(dataset_size))
+    split = int(np.floor(validation_split * dataset_size))
+    if shuffle_dataset :
+        np.random.seed(random_seed)
+        np.random.shuffle(indices)
+    train_indices, val_indices = indices[split:], indices[:split]
+
+    # Creating PT data samplers and loaders:
+    train_sampler = SubsetRandomSampler(train_indices)
+    valid_sampler = SubsetRandomSampler(val_indices)
+
+    data_loader = DataLoader(dataset, batch_size=batching_size, sampler=train_sampler)
+
+    test_loader = DataLoader(dataset, batch_size=batching_size, sampler=valid_sampler)
 
     net = Conv1DNet(flat_x.shape[0], y.shape[0], batching_size).double()
     net.train()
@@ -157,6 +178,13 @@ if __name__ == '__main__':
             if j % 50 == 0:
                 with torch.no_grad():
                     losses.append(loss)
-                    print(f'pred: {pred} \n y: {y} \n loss: {loss} \n')
+                    # print(f'pred: {pred} \n y: {y} \n loss: {loss} \n')
 
-    torch.save(net.state_dict(), './demos/baselines/saved_models/conv_classify.pt')
+    for loss_val in losses:
+        print(f'loss_val {loss_val}\n')
+
+    # with torch.no_grad():
+    #     for h, (x, y) in enumerate(test_loader):
+
+    # print(losses)
+    # torch.save(net.state_dict(), './demos/baselines/saved_models/conv_classify.pt')

@@ -127,7 +127,7 @@ def get_ksizes(delta):
 
 
 if __name__ == '__main__':
-    epochs = 10
+    epochs = 2
     dataset = A()
     x, y = dataset.__getitem__(0)
     flat_x = x.flatten()
@@ -187,4 +187,4 @@ if __name__ == '__main__':
     #     for h, (x, y) in enumerate(test_loader):
 
     # print(losses)
-    # torch.save(net.state_dict(), './demos/baselines/saved_models/conv_classify.pt')
+    torch.save(net.state_dict(), './demos/baselines/saved_models/conv_classify.pt')

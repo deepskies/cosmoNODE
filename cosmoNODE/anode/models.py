@@ -142,6 +142,7 @@ class ODEBlock(nn.Module):
         if self.odefunc.augment_dim > 0:
             if self.is_conv:
                 # Add augmentation
+                print(x.shape)
                 batch_size, channels, height, width = x.shape
                 aug = torch.zeros(batch_size, self.odefunc.augment_dim,
                                   height, width).to(self.device)

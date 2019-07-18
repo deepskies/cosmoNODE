@@ -12,13 +12,13 @@ from sklearn.model_selection import train_test_split
 
 from cosmoNODE import macros as m
 
+'''
+Anode Dataset was written 7/15/19 and is probably the best one so far,
+but there are things that need to be added and fixed.
+For one, I think that it could be more malleable to channels, treating passbands
+as channels.
 
 '''
-What shape should __getitem__ return?
-Returning a single line seems inefficient. Fix later
-For now im batching in __getitem__
-'''
-
 class Anode(Dataset):
 	def __init__(self, df_cols=['mjd', 'flux']):
 			fns = ['training_set', 'training_set_metadata']
@@ -43,8 +43,27 @@ class Anode(Dataset):
 			self.tups = []
 			self.create_tuples()
 
+	def class_to_tensor(self, target):
+		class_index = self.class_list.index(target)
+		target_tensor = torch.zeros(14, dtype=torch.double)
+		target_tensor[class_index] = 1
+		return target_tensor
+
+	def pad(self, obj_data):
+		obj_len = len(obj_data)
+		cat_len = self.seq_max_len - obj_len
+
+		padding = torch.zeros([cat_len, self.input_dim], dtype=torch.double)
+
+		without_id = obj_data.drop('object_id', axis=1)
+		obj_data_tensor = torch.tensor(without_id.values, dtype=torch.double)
+		x_tensor = torch.cat([obj_data_tensor, padding])
+		return x_tensor
+
 	def __getitem__(self, index):
-		return self.tups[index]
+		x, y = self.tups[index]
+		x = x.reshape(1, -1)
+		return (x, y)
 
 	def __len__(self):
 		return self.obj_count
@@ -63,23 +82,13 @@ class Anode(Dataset):
 			y_tensor = self.class_to_tensor(obj_target_class)
 			self.tups.append((x_tensor, y_tensor))
 
-	def class_to_tensor(self, target):
-		class_index = self.class_list.index(target)
-		target_tensor = torch.zeros(14, dtype=torch.double)
-		target_tensor[class_index] = 1
-		return target_tensor
 
-	def pad(self, obj_data):
-		obj_len = len(obj_data)
-		cat_len = self.seq_max_len - obj_len
 
-		padding = torch.zeros([cat_len, self.input_dim], dtype=torch.double)
-
-		without_id = obj_data.drop('object_id', axis=1)
-		obj_data_tensor = torch.tensor(without_id.values, dtype=torch.double)
-		x_tensor = torch.cat([obj_data_tensor, padding])
-		return x_tensor
-
+'''
+What shape should __getitem__ return?
+Returning a single line seems inefficient. Fix later
+For now im batching in __getitem__
+'''
 
 class NDim(Dataset):
 	def __init__(self, batch_size=16):

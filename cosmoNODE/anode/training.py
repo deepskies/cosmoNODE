@@ -87,8 +87,8 @@ class Trainer():
         for i, (x_batch, y_batch) in enumerate(data_loader):
             self.optimizer.zero_grad()
 
-            x_batch = x_batch.reshape(-1, 1).to(self.device)
-            y_batch = y_batch.reshape(-1, 1).to(self.device)
+            # x_batch = x_batch.reshape(-1, 1).to(self.device)
+            # y_batch = y_batch.reshape(-1, 1).to(self.device)
             # print(x_batch.dtype)
             # print(y_batch.dtype)
             y_pred = self.model(x_batch)

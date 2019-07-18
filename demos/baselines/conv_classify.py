@@ -127,15 +127,19 @@ def get_ksizes(delta):
 
 
 if __name__ == '__main__':
-    epochs = 10
+
+    # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    epochs = 2
+
     dataset = A()
     x, y = dataset.__getitem__(0)
+
     flat_x = x.flatten()
     print(f'input_dim: {flat_x.shape[0]}')
 
     batching_size = math.floor(math.log2(len(dataset)))
 
-    validation_split = .5
+    validation_split = .3
     shuffle_dataset = True
     random_seed= 42
 
@@ -153,7 +157,6 @@ if __name__ == '__main__':
     valid_sampler = SubsetRandomSampler(val_indices)
 
     data_loader = DataLoader(dataset, batch_size=batching_size, sampler=train_sampler)
-
     test_loader = DataLoader(dataset, batch_size=batching_size, sampler=valid_sampler)
 
     net = Conv1DNet(flat_x.shape[0], y.shape[0], batching_size).double()
@@ -165,8 +168,9 @@ if __name__ == '__main__':
     logging_rate = 10
     losses = []
 
-    for i in range(1, epochs + 1):
-        for j, (x, y) in enumerate(data_loader):
+    for epoch in range(1, epochs + 1):
+        running_loss = 0.0
+        for i, (x, y) in enumerate(data_loader):
             optimizer.zero_grad()
 
             pred = net(x)
@@ -175,16 +179,25 @@ if __name__ == '__main__':
 
             loss.backward()
             optimizer.step()
-            if j % 50 == 0:
+
+            running_loss += loss.item()
+            if i % logging_rate == 0:
                 with torch.no_grad():
                     losses.append(loss)
-                    # print(f'pred: {pred} \n y: {y} \n loss: {loss} \n')
+                    print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, running_loss / logging_rate))
+                    running_loss = 0.0
 
+    print('Finished Training')
     for loss_val in losses:
         print(f'loss_val {loss_val}\n')
 
-    # with torch.no_grad():
-    #     for h, (x, y) in enumerate(test_loader):
+    with torch.no_grad():
+        for h, (x, y) in enumerate(test_loader):
 
-    # print(losses)
+            outputs = net(x)
+            _, predicted = torch.max(outputs.data, 1)
+            total += y.size(0)
+            correct += (predicted == y).sum().item()
+
+    print('Accuracy of the network on the 10000 test images: %d %%' % (100 * correct / total))
     # torch.save(net.state_dict(), './demos/baselines/saved_models/conv_classify.pt')

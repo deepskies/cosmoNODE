@@ -1,6 +1,7 @@
 # huge thanks to https://github.com/EmilienDupont/augmented-neural-odes
 
 import json
+import torch
 import torch.nn as nn
 from numpy import mean
 
@@ -97,6 +98,11 @@ class Trainer():
             if not self.is_resnet:
                 iteration_nfes = self._get_and_reset_nfes()
                 epoch_nfes += iteration_nfes
+
+            if self.classification:
+                # y_pred = y_pred.long()
+                y_batch = torch.max(y_batch.long(), 1)[1]
+                # torch.max(y.long(), 1)[1]
 
             loss = self.loss_func(y_pred, y_batch)
             loss.backward()

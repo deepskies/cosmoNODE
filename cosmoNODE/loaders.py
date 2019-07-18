@@ -62,7 +62,7 @@ class Anode(Dataset):
 
 	def __getitem__(self, index):
 		x, y = self.tups[index]
-		x = x.reshape(1, -1)
+		x = x.reshape(1, x.shape[0], x.shape[1])
 		return (x, y)
 
 	def __len__(self):

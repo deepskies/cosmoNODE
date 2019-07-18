@@ -138,7 +138,7 @@ class ConvODENet(nn.Module):
     """
     def __init__(self, device, img_size, num_filters, output_dim=1,
                  augment_dim=0, time_dependent=False, non_linearity='relu',
-                 tol=1e-3, adjoint=False):
+                 tol=1e-2, adjoint=False):
         super(ConvODENet, self).__init__()
         self.device = device
         self.img_size = img_size

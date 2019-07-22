@@ -1,7 +1,4 @@
-# huge thanks to https://github.com/EmilienDupont/augmented-neural-odes
-
 import json
-import torch
 import torch.nn as nn
 from numpy import mean
 
@@ -38,7 +35,7 @@ class Trainer():
     """
     def __init__(self, model, optimizer, device, classification=False,
                  print_freq=10, record_freq=10, verbose=True, save_dir=None):
-        self.model = model.double()
+        self.model = model
         self.optimizer = optimizer
         self.classification = classification
         self.device = device
@@ -88,21 +85,15 @@ class Trainer():
         for i, (x_batch, y_batch) in enumerate(data_loader):
             self.optimizer.zero_grad()
 
-            # x_batch = x_batch.reshape(-1, 1).to(self.device)
-            # y_batch = y_batch.reshape(-1, 1).to(self.device)
-            # print(x_batch.dtype)
-            # print(y_batch.dtype)
+            x_batch = x_batch.to(self.device)
+            y_batch = y_batch.to(self.device)
+
             y_pred = self.model(x_batch)
 
             # ResNets do not have an NFE attribute
             if not self.is_resnet:
                 iteration_nfes = self._get_and_reset_nfes()
                 epoch_nfes += iteration_nfes
-
-            if self.classification:
-                # y_pred = y_pred.long()
-                y_batch = torch.max(y_batch.long(), 1)[1]
-                # torch.max(y.long(), 1)[1]
 
             loss = self.loss_func(y_pred, y_batch)
             loss.backward()
@@ -180,3 +171,4 @@ class Trainer():
             iteration_nfes = self.model.odefunc.nfe
             self.model.odefunc.nfe = 0
         return iteration_nfes
+        

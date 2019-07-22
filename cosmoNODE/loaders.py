@@ -62,8 +62,9 @@ class Anode(Dataset):
 
 	def __getitem__(self, index):
 		x, y = self.tups[index]
+		# y_index = torch.argmax(y, 1)[1]
 		x = x.reshape(1, x.shape[0], x.shape[1])
-		return (x, y)
+		return (x.float(), torch.argmax(y).long())
 
 	def __len__(self):
 		return self.obj_count

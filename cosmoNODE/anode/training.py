@@ -1,4 +1,5 @@
 import json
+import torch
 import torch.nn as nn
 from numpy import mean
 
@@ -52,7 +53,8 @@ class Trainer():
         self.histories = {'loss_history': [], 'nfe_history': [],
                           'bnfe_history': [], 'total_nfe_history': [],
                           'epoch_loss_history': [], 'epoch_nfe_history': [],
-                          'epoch_bnfe_history': [], 'epoch_total_nfe_history': []}
+                          'epoch_bnfe_history': [], 'epoch_total_nfe_history': [],
+                          'batch_accuracies' : []}
         self.buffer = {'loss': [], 'nfe': [], 'bnfe': [], 'total_nfe': []}
 
         # Only resnets have a number of layers attribute
@@ -82,13 +84,26 @@ class Trainer():
         epoch_loss = 0.
         epoch_nfes = 0
         epoch_backward_nfes = 0
+
         for i, (x_batch, y_batch) in enumerate(data_loader):
+            correct = 0
+            total = 0
+            accuracies = []
             self.optimizer.zero_grad()
 
             x_batch = x_batch.to(self.device)
             y_batch = y_batch.to(self.device)
 
             y_pred = self.model(x_batch)
+
+            if self.classification:
+                _, predicted = torch.max(y_pred.data, 1)
+                total += y_batch.size(0)
+                correct += (predicted == y_batch).sum().item()
+                accuracy = correct/total
+                print(accuracy)
+                accuracies.append(accuracy)
+                self.histories['batch_accuracies'].append(accuracy)
 
             # ResNets do not have an NFE attribute
             if not self.is_resnet:
@@ -108,10 +123,13 @@ class Trainer():
                 if self.verbose:
                     print("\nIteration {}/{}".format(i, len(data_loader)))
                     print("Loss: {:.3f}".format(loss.item()))
+                    print("Accuracy: {:.3f}".format(sum(accuracies) / self.print_freq))
+
                     if not self.is_resnet:
                         print("NFE: {}".format(iteration_nfes))
                         print("BNFE: {}".format(iteration_backward_nfes))
                         print("Total NFE: {}".format(iteration_nfes + iteration_backward_nfes))
+
 
             # Record information in buffer at every iteration
             self.buffer['loss'].append(loss.item())
@@ -171,4 +189,3 @@ class Trainer():
             iteration_nfes = self.model.odefunc.nfe
             self.model.odefunc.nfe = 0
         return iteration_nfes
-        

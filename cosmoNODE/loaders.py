@@ -20,9 +20,10 @@ as channels.
 
 '''
 class Anode(Dataset):
-	def __init__(self, df_cols=['mjd', 'flux']):
+	def __init__(self, conv=True, df_cols=['mjd', 'flux']):
 			fns = ['training_set', 'training_set_metadata']
 			self.raw, self.raw_meta = m.read_multi(fns, fillna=True)
+			self.conv = conv
 
 			self.df = self.raw[[m.ID] + df_cols]
 			self.df_meta = self.raw_meta[['object_id', 'target']].sort_values(by=m.ID)
@@ -63,7 +64,10 @@ class Anode(Dataset):
 	def __getitem__(self, index):
 		x, y = self.tups[index]
 		# y_index = torch.argmax(y, 1)[1]
-		x = x.reshape(1, x.shape[0], x.shape[1])
+		if self.conv:
+			x = x.reshape(1, x.shape[0], x.shape[1])
+		else:
+			x = x.flatten()
 		return (x.float(), torch.argmax(y).long())
 
 	def __len__(self):

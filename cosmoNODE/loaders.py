@@ -12,6 +12,21 @@ from sklearn.model_selection import train_test_split
 
 from cosmoNODE import macros as m
 
+"This dataset produces a lightcurve as the input and output "
+
+class Enc(Dataset):
+	def __init__(self, df_cols=['mjd', 'flux']):
+		fns = ['training_set']
+		self.raw = m.read_multi(fns, fillna=True)[0]
+		self.df = self.raw[[m.ID] + df_cols]
+		self.classes = self.df_meta['target'].unique()
+		self.classes.sort()
+		
+		self.class_list = self.classes.tolist()
+
+		self.id_group = self.df.groupby(by=m.ID, as_index=False)
+		self.objs = [elt for elt in self.id_group]
+
 '''
 Anode Dataset was written 7/15/19 and is probably the best one so far,
 but there are things that need to be added and fixed.

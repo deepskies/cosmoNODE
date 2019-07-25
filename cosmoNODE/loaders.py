@@ -12,6 +12,15 @@ from sklearn.model_selection import train_test_split
 
 from cosmoNODE import macros as m
 
+"I'm just hoarding dataloader tech debt at this point"
+
+class LC(Dataset):
+	def __init__(self):
+		# self.df = pd.read_csv('')
+		pass
+
+
+
 "This dataset produces a lightcurve as the input and output "
 
 class Enc(Dataset):
@@ -21,7 +30,7 @@ class Enc(Dataset):
 		self.df = self.raw[[m.ID] + df_cols]
 		self.classes = self.df_meta['target'].unique()
 		self.classes.sort()
-		
+
 		self.class_list = self.classes.tolist()
 
 		self.id_group = self.df.groupby(by=m.ID, as_index=False)

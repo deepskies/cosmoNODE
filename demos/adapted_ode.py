@@ -84,21 +84,23 @@ def visualize(true_y, pred_y, odefunc, itr):
 
 if __name__ == '__main__':
     # viz_init()
-    niters = 100
+    epochs = 5
+    niters = 2000
     odefunc = ODEFunc()
     optimizer = optim.RMSprop(odefunc.parameters(), lr=1e-3)
     ii = 0
-    for itr in range(1, niters + 1):
-        optimizer.zero_grad()
-        by0_f, bt_f, by_f = flux_batch()
-        pred_f = odeint(odefunc, by0_f, bt_f)
-        loss = torch.mean(torch.abs(pred_f - by_f))
-        loss.backward()
-        optimizer.step()
-        if itr % test_freq == 0:
-            with torch.no_grad():
-                pred_f = odeint(odefunc, flux_y0, mjds)
-                loss = torch.mean(torch.abs(pred_f - true_f))
-                print('Iter {:04d} | Total Loss {:.6f}'.format(itr, loss.item()))
-                visualize(true_f, pred_f, odefunc, ii)
-                ii += 1
+    for epoch in range(1, epochs + 1):
+        for itr in range(1, niters + 1):
+            optimizer.zero_grad()
+            by0_f, bt_f, by_f = flux_batch()
+            pred_f = odeint(odefunc, by0_f, bt_f)
+            loss = torch.mean(torch.abs(pred_f - by_f))
+            loss.backward()
+            optimizer.step()
+            if itr % test_freq == 0:
+                with torch.no_grad():
+                    pred_f = odeint(odefunc, flux_y0, mjds)
+                    loss = torch.mean(torch.abs(pred_f - true_f))
+                    print('Iter {:04d} | Total Loss {:.6f}'.format(itr, loss.item()))
+                    visualize(true_f, pred_f, odefunc, ii)
+                    ii += 1

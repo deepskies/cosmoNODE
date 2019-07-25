@@ -12,6 +12,30 @@ from sklearn.model_selection import train_test_split
 
 from cosmoNODE import macros as m
 
+"I'm just hoarding dataloader tech debt at this point"
+
+class LC(Dataset):
+	def __init__(self):
+		# self.df = pd.read_csv('')
+		pass
+
+
+
+"This dataset produces a lightcurve as the input and output "
+
+class Enc(Dataset):
+	def __init__(self, df_cols=['mjd', 'flux']):
+		fns = ['training_set']
+		self.raw = m.read_multi(fns, fillna=True)[0]
+		self.df = self.raw[[m.ID] + df_cols]
+		self.classes = self.df_meta['target'].unique()
+		self.classes.sort()
+
+		self.class_list = self.classes.tolist()
+
+		self.id_group = self.df.groupby(by=m.ID, as_index=False)
+		self.objs = [elt for elt in self.id_group]
+
 '''
 Anode Dataset was written 7/15/19 and is probably the best one so far,
 but there are things that need to be added and fixed.
@@ -20,9 +44,10 @@ as channels.
 
 '''
 class Anode(Dataset):
-	def __init__(self, df_cols=['mjd', 'flux']):
+	def __init__(self, conv=True, df_cols=['mjd', 'flux']):
 			fns = ['training_set', 'training_set_metadata']
 			self.raw, self.raw_meta = m.read_multi(fns, fillna=True)
+			self.conv = conv
 
 			self.df = self.raw[[m.ID] + df_cols]
 			self.df_meta = self.raw_meta[['object_id', 'target']].sort_values(by=m.ID)
@@ -62,8 +87,12 @@ class Anode(Dataset):
 
 	def __getitem__(self, index):
 		x, y = self.tups[index]
-		x = x.reshape(1, x.shape[0], x.shape[1])
-		return (x, y)
+		# y_index = torch.argmax(y, 1)[1]
+		if self.conv:
+			x = x.reshape(1, x.shape[0], x.shape[1])
+		else:
+			x = x.flatten()
+		return (x.float(), torch.argmax(y).long())
 
 	def __len__(self):
 		return self.obj_count

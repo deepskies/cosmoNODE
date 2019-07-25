@@ -13,6 +13,9 @@ demos/notebooks/.ipynb_checkpoints/
 demos/notebooks/Untitled.ipynb
 demos/ode_models
 
+.ipynb_checkpoints/
+augmented-neural-ode-example.ipynb
+
 \anode\__pycache__
 cosmoNODE/anode/__pycache__/
 cosmoNODE/anode/__pycache__/training.cpython-36.pyc

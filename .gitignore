@@ -1,12 +1,13 @@
 # dont want to upload the whole LSST data
 demos/data/
+.pytest_cache/
 
 #dont need caches
 /__pycache__/
 
-cosmoNODE/__pycache__/
+*/__pycache__/
+*/*/__pycache__/
 
-demos/baselines/__pycache__/
 demos/baselines/saved_models/
 demos/baselines/conv_mnist.py
 demos/notebooks/.ipynb_checkpoints/
@@ -15,10 +16,6 @@ demos/ode_models
 
 .ipynb_checkpoints/
 augmented-neural-ode-example.ipynb
-
-\anode\__pycache__
-cosmoNODE/anode/__pycache__/
-cosmoNODE/anode/__pycache__/training.cpython-36.pyc
 
 # don't want to upload my API key
 kaggle.json

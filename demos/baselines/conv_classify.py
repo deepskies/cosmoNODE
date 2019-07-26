@@ -98,6 +98,12 @@ class Conv1DNet(nn.Module):
 class Conv2DNet(nn.Module):
     def __init__(self, input_shape=(28, 28), out_classes=10):
         super(Net, self).__init__()
+        self.in_dim = input_shape[0]
+        # we want to convolve until n x n > # classes and (n - 1) ** 2 < # classes
+        self.out_dim = math.ceil(math.sqrt(out_classes))
+        self.delta = self.in_dim - self.out_dim
+        self.ksizes = get_ksizes(self.delta)
+
         self.conv1 = nn.Conv2d(1, 20, 5, 1)
         self.conv2 = nn.Conv2d(20, 50, 5, 1)
         self.fc1 = nn.Linear(4*4*50, 500)
@@ -124,6 +130,53 @@ def get_ksizes(delta):
         print(ksize)
         ksizes.append(ksize)
     return ksizes
+
+def get_layers(x, ksizes, max_channels=64):
+    in_dim = x.dim()
+    prev = x
+
+    prev_channels = 1
+    channels = 1
+
+    layers = []
+    dims = []
+
+    for i, ksize in enumerate(ksizes):
+        if channels < max_channels:
+            channels = prev_channels * 2
+
+        # why does python not have switch statements
+        if in_dim == 3:
+            layer = nn.Conv1d(prev_channels, channels, kernel_size=ksize)
+        elif in_dim == 4:
+            layer = nn.Conv2d(prev_channels, channels, kernel_size=ksize)
+        elif in_dim == 5:  # [B, C, D, H, W]
+            layer = nn.Conv3d(prev_channels, channels, kernel_size=ksize)
+
+        prev_channels = channels
+
+        prev = layer(prev)
+
+        dims.append(prev.shape)
+        layers.append(layer)
+
+    print(dims)
+
+    numel_wo_batch = dims[-1][1] * dims[-1][2]
+
+    print(numel_wo_batch)
+    # conv_out = self.dims[-1].numel()
+    pool_ksize = math.floor(math.log2(numel_wo_batch))
+
+    pool_layer = nn.MaxPool1d(pool_ksize)
+
+    pool_out = pool_layer(prev.view(batch_size, 1, -1)).shape
+
+    linear_input_dim = pool_out[-1]
+
+    layers.append(pool_layer)
+    layers.append(nn.Linear(linear_input_dim, self.out_dim))
+    layers.append(nn.Softmax(dim=-1))
 
 
 if __name__ == '__main__':
@@ -203,4 +256,3 @@ if __name__ == '__main__':
     # torch.save(net.state_dict(), './demos/baselines/saved_models/conv_classify.pt')
     # print(losses)
     torch.save(net.state_dict(), './demos/baselines/saved_models/conv_classify.pt')
-

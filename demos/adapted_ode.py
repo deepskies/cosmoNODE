@@ -5,7 +5,6 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, Dataset
 import numpy as np
-from torchdiffeq import odeint
 
 from cosmoNODE.loaders import Anode as A
 
@@ -13,11 +12,20 @@ device = torch.device('cpu')
 
 ''' this is an adapted version of ricky's ode_demo.py '''
 
+adjoint = True
+
 viz = True
+viz_at_end = True
 data_size = 350
-batch_time = 10
-batch_size = 20
-test_freq = 20
+batch_time = 25
+batch_size = 50
+
+test_freq = 100
+
+if adjoint:
+    from torchdiffeq import odeint_adjoint as odeint
+else:
+    from torchdiffeq import odeint
 
 a = A()
 dataloader = DataLoader(a)
@@ -87,13 +95,13 @@ if __name__ == '__main__':
     epochs = 5
     niters = 2000
     odefunc = ODEFunc()
-    optimizer = optim.RMSprop(odefunc.parameters(), lr=1e-3)
+    optimizer = optim.RMSprop(odefunc.parameters(), lr=1e-2)
     ii = 0
     for epoch in range(1, epochs + 1):
         for itr in range(1, niters + 1):
             optimizer.zero_grad()
             by0_f, bt_f, by_f = flux_batch()
-            pred_f = odeint(odefunc, by0_f, bt_f)
+            pred_f = odeint(odefunc, by0_f, bt_f, rtol=1e-2, atol=1e-3)
             loss = torch.mean(torch.abs(pred_f - by_f))
             loss.backward()
             optimizer.step()
@@ -102,5 +110,9 @@ if __name__ == '__main__':
                     pred_f = odeint(odefunc, flux_y0, mjds)
                     loss = torch.mean(torch.abs(pred_f - true_f))
                     print('Iter {:04d} | Total Loss {:.6f}'.format(itr, loss.item()))
-                    visualize(true_f, pred_f, odefunc, ii)
+                    if viz:
+                        visualize(true_f, pred_f, odefunc, ii)
                     ii += 1
+if viz_at_end:
+    pred_f = odeint(odefunc, flux_y0, mjds)
+    visualize(true_f, pred_f, odefunc, ii)

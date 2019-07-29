@@ -14,6 +14,29 @@ from cosmoNODE import macros as m
 
 "I'm just hoarding dataloader tech debt at this point"
 
+
+class Big(Dataset):
+	def __init__(self):
+		self.fns = ['training_set', 'training_set_metadata']
+
+		self.df, self.meta_df = m.read_multi(self.fns)
+		self.meta_df = self.meta_df.fillna(0)
+
+		self.merged = pd.merge(self.df, self.meta_df, on=m.ID)
+		self.time_series = self.merged.sort_values(by='mjd')
+		self.times = time_series[['mjd']].values.flatten()
+		self.data = time_series.drop('mjd', axis=1)
+		self.length = len(self.times)
+
+	def __getitem__(self, index):
+		return self.times[index], self.data
+
+	def __len__(self):
+		return  self.length
+
+	# sort the
+
+
 """
 import os
 script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in

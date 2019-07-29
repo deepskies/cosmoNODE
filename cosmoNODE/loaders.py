@@ -14,11 +14,25 @@ from cosmoNODE import macros as m
 
 "I'm just hoarding dataloader tech debt at this point"
 
-class LC(Dataset):
-	def __init__(self):
-		# self.df = pd.read_csv('')
-		pass
+"""
+import os
+script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in
+rel_path = "2091/data.txt"
+abs_file_path = os.path.join(script_dir, rel_path)
+"""
 
+class LC(Dataset):
+	def __init__(self, fn='training_set', group_cols=['object_id', 'passband'], ):
+		self.df = pd.read_csv('./demos/data/' + fn + '.csv')
+		self.groups = self.df.groupby(group_cols)
+		self.groups = [group[1] for group in self.groups]
+		self.num_groups = len(self.groups)
+
+	def __getitem__(self, index):
+		return self.groups[index][['mjd', 'flux']]
+
+	def __len__(self):
+		return self.num_groups
 
 
 "This dataset produces a lightcurve as the input and output "

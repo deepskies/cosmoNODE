@@ -34,7 +34,6 @@ class Big(Dataset):
 	def __len__(self):
 		return  self.length
 
-	# sort the
 
 
 """

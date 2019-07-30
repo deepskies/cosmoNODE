@@ -6,6 +6,18 @@ from torchdiffeq import odeint, odeint_adjoint
 
 MAX_NUM_STEPS = 1000  # Maximum number of steps for ODE solver
 
+'''
+Draft Question
+
+Sorry, I should have spent more time organizing my thoughts, thanks for your response.
+Your response is very helpful and clear.
+
+I thought about 2. but I was unsure because I figured that it would be in the main code already.
+
+I will add the argument in now. Is there a reason that you don't have a `eval_times = None` argument in ODENet like there is in the ODEBlock forward function?
+'''
+
+
 
 class ODEFunc(nn.Module):
     """MLP modeling the derivative of ODE system.

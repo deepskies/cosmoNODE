@@ -22,23 +22,21 @@ else:
 
 viz = True
 viz_at_end = True
-data_size = 350
-batch_time = 25
-batch_size = 175
 
 test_frac = 0.2
-omission_type = 'cutoff'
+split_type = 'cutoff'
 test_freq = 5
 
 lc = LC()
 
 def ode_batch(time_sols, flux_sols):
-    s = torch.from_numpy(np.random.choice(np.arange(data_size - batch_time, dtype=np.int64), batch_size, replace=True))
+    s = torch.from_numpy(np.random.choice(np.arange(train_size - batch_time, dtype=np.int64), batch_size, replace=True))
 #     print(s)
     batch_y0 = flux_sols[s]  # (M, D)
     batch_t = time_sols[:batch_time]  # (T)
     batch_y = torch.stack([flux_sols[s + i] for i in range(batch_time)], dim=0)  # (T, M, D)
     return batch_y0, batch_t, batch_y
+
 
 def split_rand(length, test_frac=test_frac):
     # given int (representing timeseries length) and fraction to sample
@@ -48,6 +46,7 @@ def split_rand(length, test_frac=test_frac):
     test_indices = np.random.shuffle(indices)[:split_index]
     train_indices = np.delete(indices, test_indices)
     return train_indices, test_indices
+
 
 def split_cutoff(length, test_frac=test_frac):
     indices, split_idx = split_index(length, test_frac)
@@ -61,8 +60,10 @@ def split_index(length, test_frac):
     split_idx = round(test_frac * length)
     return indices, split_idx
 
-def viz():
 
+def viz():
+    # todo
+    pass
 
 # todo
 class Runner:
@@ -90,18 +91,19 @@ class ODEFunc(nn.Module):
 
 num_curves = len(lc)
 
-curve = lc[np.random.choice(num_curves)][['mjd', 'flux']]
+# curve = lc[np.random.choice(num_curves)][['mjd', 'flux']]
+curve = lc[0][['mjd', 'flux']]
 times = torch.tensor(curve['mjd'].values.tolist())
 flux_list = torch.tensor(curve['flux'].values.tolist())
 
 t_0 = times[0]  # odeint takes time as 1d
 flux_0 = flux_list[0].reshape(1, -1) # torch.Size([1, 1])
 
-data_size = len(times)  # - 1
-split_idx = round(test_frac * length)
+data_size = len(times) - 1
+split_idx = round(test_frac * data_size)
 
 
-if omission_type == 'cutoff':
+if split_type == 'cutoff':
     train, test = split_cutoff(data_size, test_frac)
     # for elt in (times, fluxes):
     #     for tr_te in (train, test):
@@ -112,16 +114,26 @@ if omission_type == 'cutoff':
     train_fluxes = torch.tensor([flux_list[train_elt] for train_elt in train])
     test_fluxes = torch.tensor([flux_list[test_elt] for test_elt in test])
 
-if omission_type == 'rand':
+if split_type == 'rand':
     # todo
-    pass
+    train, test = split_rand(data_size, test_frac)
+
+    train_times = torch.tensor([times[train_elt] for train_elt in train])
+    test_times = torch.tensor([times[test_elt] for test_elt in test])
+
+    train_fluxes = torch.tensor([flux_list[train_elt] for train_elt in train])
+    test_fluxes = torch.tensor([flux_list[test_elt] for test_elt in test])
+
 
 fluxes = flux_list.reshape(-1, 1, 1)
 
 train_size = len(train_times)
-
-batch_time = train_size//10
+print(f'train_size: {train_size}')
+batch_time = train_size // 10
 batch_size = train_size
+
+print(f'train_times: {train_times}')
+print(f'train_fluxes: {train_fluxes}')
 
 epochs = 5
 niters = 100
@@ -133,11 +145,14 @@ losses = []
 # used for plotting
 eval_times = torch.linspace(times.min(), times.max(), data_size*100)
 
+r_tol = 1e-1
+a_tol = 1e-1
+
 for epoch in range(1, epochs + 1):
     for itr in range(1, niters + 1):
         optimizer.zero_grad()
         by0_f, bt_f, by_f = ode_batch(train_times, train_fluxes)
-        pred_f = odeint(odefunc, by0_f, bt_y, rtol=r_tol, atol=a_tol)
+        pred_f = odeint(odefunc, by0_f, bt_f, rtol=r_tol, atol=a_tol)
         loss = torch.mean(torch.abs(pred_f - by_f))
         loss.backward()
         optimizer.step()
@@ -150,6 +165,6 @@ for epoch in range(1, epochs + 1):
                 print('Iter {:04d} | Total Loss {:.6f}'.format(itr, loss.item()))
                 plt.plot(eval_times.tolist(), pred_interpolation.flatten().tolist())
                 plt.scatter(train_times.numpy(), train_fluxes.numpy(), c='b')
-                plt.scatter(test_times.numpy(), test_fluxes.numpy(), c='r'))
+                plt.scatter(test_times.numpy(), test_fluxes.numpy(), c='r')
                 plt.show()
                 ii += 1

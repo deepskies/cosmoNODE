@@ -49,7 +49,8 @@ def split_rand(length, test_frac=test_frac):
 
 
 def split_cutoff(length, test_frac=test_frac):
-    indices, split_idx = split_index(length, test_frac)
+    train_frac = 1 - test_frac
+    indices, split_idx = split_index(length, train_frac)
     train_indices = indices[:split_idx]
     test_indices = indices[split_idx:]
     return train_indices, test_indices
@@ -61,9 +62,15 @@ def split_index(length, test_frac):
     return indices, split_idx
 
 
-def viz():
-    # todo
-    pass
+def viz(pred_interpolation):
+    plt.cla()
+    plt.ylim(fluxes.min(), fluxes.max())
+    plt.xlim(times.min(), times.max())
+    plt.scatter(train_times.numpy(), train_fluxes.numpy(), c='b')
+    plt.scatter(test_times.numpy(), test_fluxes.numpy(), c='r')
+    plt.plot(eval_times.tolist(), pred_interpolation.flatten().tolist())
+    plt.draw()
+    plt.pause(1e-3)
 
 # todo
 class Runner:
@@ -150,11 +157,13 @@ losses = []
 # used for plotting
 eval_times = torch.linspace(times.min(), times.max(), data_size*100)
 
-r_tol = 1e-1
-a_tol = 1e-1
+r_tol = 2e-1
+a_tol = 2e-1
 
 by0_f, bt_f, by_f = ode_batch(train_times, train_fluxes_shaped)
 print(f'by0.shape : {by0_f.shape}, bt.shape: {bt_f.shape}, by.shape: {by_f.shape}')
+
+plt.ion()
 
 for epoch in range(1, epochs + 1):
     for itr in range(1, niters + 1):
@@ -171,8 +180,10 @@ for epoch in range(1, epochs + 1):
                 loss = torch.mean(torch.abs(pred_f - fluxes))
                 losses.append(loss)
                 print('Iter {:04d} | Total Loss {:.6f}'.format(itr, loss.item()))
-                plt.plot(eval_times.tolist(), pred_interpolation.flatten().tolist())
-                plt.scatter(train_times.numpy(), train_fluxes.numpy(), c='b')
-                plt.scatter(test_times.numpy(), test_fluxes.numpy(), c='r')
-                plt.show()
+                viz(pred_interpolation)
                 ii += 1
+if viz_at_end:
+    loss_over_time = [i for i in range(len(losses))]
+    # np.np(200)
+    # np_loss  = np.array(loss_over_time)
+    plt.plot(loss_over_time, losses)

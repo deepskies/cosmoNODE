@@ -13,7 +13,7 @@ device = torch.device('cpu')
 
 ''' this is an adapted version of ricky's ode_demo.py '''
 
-adjoint = False
+adjoint = True
 
 if adjoint:
     from torchdiffeq import odeint_adjoint as odeint
@@ -23,7 +23,7 @@ else:
 viz = True
 viz_at_end = True
 
-test_frac = 0.2
+test_frac = 0.5
 split_type = 'cutoff'
 test_freq = 5
 
@@ -42,8 +42,11 @@ def split_rand(length, test_frac=test_frac):
     # given int (representing timeseries length) and fraction to sample
     # returns np array of ints corresponding to the indices of the data
     # i'm not passing the data itself to this because i imagine that it would be slower
+
+    # todo strictly increasing/decreasing issue
     indices, split_idx = split_index(length, test_frac)
-    test_indices = np.random.shuffle(indices)[:split_index]
+    np.random.shuffle(indices)
+    test_indices = indices[:split_idx]
     train_indices = np.delete(indices, test_indices)
     return train_indices, test_indices
 
@@ -98,8 +101,8 @@ class ODEFunc(nn.Module):
 
 num_curves = len(lc)
 
-# curve = lc[np.random.choice(num_curves)][['mjd', 'flux']]
-curve = lc[0][['mjd', 'flux']]
+curve = lc[np.random.choice(num_curves)][['mjd', 'flux']]
+# curve = lc[0][['mjd', 'flux']]
 times = torch.tensor(curve['mjd'].values.tolist())
 flux_list = torch.tensor(curve['flux'].values.tolist())
 
@@ -182,8 +185,13 @@ for epoch in range(1, epochs + 1):
                 print('Iter {:04d} | Total Loss {:.6f}'.format(itr, loss.item()))
                 viz(pred_interpolation)
                 ii += 1
+
 if viz_at_end:
+    print(losses)
     loss_over_time = [i for i in range(len(losses))]
     # np.np(200)
     # np_loss  = np.array(loss_over_time)
     plt.plot(loss_over_time, losses)
+    plt.show()
+    plt.pause(5)
+    plt.ioff()

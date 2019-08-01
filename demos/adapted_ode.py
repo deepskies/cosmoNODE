@@ -144,7 +144,7 @@ fluxes = flux_list.reshape(-1, 1, 1)
 
 train_size = len(train_times)
 print(f'train_size: {train_size}')
-batch_time = train_size // 5
+batch_time = train_size // 2
 batch_size = train_size // 2
 
 print(f'train_times: {train_times}')
@@ -183,7 +183,8 @@ for epoch in range(1, epochs + 1):
                 loss = torch.mean(torch.abs(pred_f - fluxes))
                 losses.append(loss)
                 print('Iter {:04d} | Total Loss {:.6f}'.format(itr, loss.item()))
-                viz(pred_interpolation)
+                if viz:
+                    viz(pred_interpolation)
                 ii += 1
 
 if viz_at_end:

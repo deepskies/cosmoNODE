@@ -13,7 +13,7 @@ device = torch.device('cpu')
 
 ''' this is an adapted version of ricky's ode_demo.py '''
 
-adjoint = True
+adjoint = False
 
 if adjoint:
     from torchdiffeq import odeint_adjoint as odeint
@@ -114,6 +114,9 @@ if split_type == 'cutoff':
     train_fluxes = torch.tensor([flux_list[train_elt] for train_elt in train])
     test_fluxes = torch.tensor([flux_list[test_elt] for test_elt in test])
 
+    train_fluxes_shaped = train_fluxes.reshape(-1, 1, 1)
+    test_fluxes_shaped = test_fluxes.reshape(-1, 1, 1)
+
 if split_type == 'rand':
     # todo
     train, test = split_rand(data_size, test_frac)
@@ -124,13 +127,15 @@ if split_type == 'rand':
     train_fluxes = torch.tensor([flux_list[train_elt] for train_elt in train])
     test_fluxes = torch.tensor([flux_list[test_elt] for test_elt in test])
 
+    train_fluxes_shaped = train_fluxes.reshape(-1, 1, 1)
+    test_fluxes_shaped = test_fluxes.reshape(-1, 1, 1)
 
 fluxes = flux_list.reshape(-1, 1, 1)
 
 train_size = len(train_times)
 print(f'train_size: {train_size}')
-batch_time = train_size // 10
-batch_size = train_size
+batch_time = train_size // 5
+batch_size = train_size // 2
 
 print(f'train_times: {train_times}')
 print(f'train_fluxes: {train_fluxes}')
@@ -148,10 +153,13 @@ eval_times = torch.linspace(times.min(), times.max(), data_size*100)
 r_tol = 1e-1
 a_tol = 1e-1
 
+by0_f, bt_f, by_f = ode_batch(train_times, train_fluxes_shaped)
+print(f'by0.shape : {by0_f.shape}, bt.shape: {bt_f.shape}, by.shape: {by_f.shape}')
+
 for epoch in range(1, epochs + 1):
     for itr in range(1, niters + 1):
         optimizer.zero_grad()
-        by0_f, bt_f, by_f = ode_batch(train_times, train_fluxes)
+        by0_f, bt_f, by_f = ode_batch(train_times, train_fluxes_shaped)
         pred_f = odeint(odefunc, by0_f, bt_f, rtol=r_tol, atol=a_tol)
         loss = torch.mean(torch.abs(pred_f - by_f))
         loss.backward()

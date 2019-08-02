@@ -24,7 +24,7 @@ viz = True
 viz_at_end = True
 
 test_frac = 0.5
-split_type = 'cutoff'
+split_type = 'rand'
 test_freq = 5
 
 lc = LC()
@@ -45,8 +45,10 @@ def split_rand(length, test_frac=test_frac):
 
     # todo strictly increasing/decreasing issue
     indices, split_idx = split_index(length, test_frac)
-    np.random.shuffle(indices)
-    test_indices = indices[:split_idx]
+
+    cp = indices.copy()
+    np.random.shuffle(cp)
+    test_indices = cp[1:split_idx]  # need t0 in train
     train_indices = np.delete(indices, test_indices)
     return train_indices, test_indices
 

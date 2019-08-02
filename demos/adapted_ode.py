@@ -27,7 +27,7 @@ test_frac = 0.5
 split_type = 'rand'
 test_freq = 5
 
-lc = LC()
+lc = LC(groupby_cols=['object_id'])
 
 def ode_batch(time_sols, flux_sols):
     s = torch.from_numpy(np.random.choice(np.arange(train_size - batch_time, dtype=np.int64), batch_size, replace=True))
@@ -88,8 +88,6 @@ split_idx = round(test_frac * data_size)
 
 if split_type == 'cutoff':
     train, test = utils.split_cutoff(data_size, test_frac)
-    # for elt in (times, fluxes):
-    #     for tr_te in (train, test):
 
     train_times = torch.tensor([times[train_elt] for train_elt in train])
     test_times = torch.tensor([times[test_elt] for test_elt in test])
@@ -100,8 +98,8 @@ if split_type == 'cutoff':
     train_fluxes_shaped = train_fluxes.reshape(-1, 1, 1)
     test_fluxes_shaped = test_fluxes.reshape(-1, 1, 1)
 
+
 if split_type == 'rand':
-    # todo
     train, test = utils.split_rand(data_size, test_frac)
 
     train_times = torch.tensor([times[train_elt] for train_elt in train])
@@ -117,8 +115,8 @@ fluxes = flux_list.reshape(-1, 1, 1)
 
 train_size = len(train_times)
 print(f'train_size: {train_size}')
-batch_time = train_size // 2
-batch_size = train_size
+batch_time = train_size // 4
+batch_size = train_size // 2
 
 print(f'train_times: {train_times}')
 print(f'train_fluxes: {train_fluxes}')
@@ -134,8 +132,8 @@ losses = []
 # used for plotting
 eval_times = torch.linspace(times.min(), times.max(), data_size*20)
 
-r_tol = 1e-3
-a_tol = 1e-5
+r_tol = 1e-1
+a_tol = 1e-1
 
 by0_f, bt_f, by_f = ode_batch(train_times, train_fluxes_shaped)
 print(f'by0.shape : {by0_f.shape}, bt.shape: {bt_f.shape}, by.shape: {by_f.shape}')

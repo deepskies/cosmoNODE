@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader, Dataset
 from cosmoNODE import utils
 from cosmoNODE.loaders import LC
 
-device = torch.device('cuda')
+device = torch.device('cpu')
 
 ''' this is an adapted version of ricky's ode_demo.py '''
 
@@ -21,12 +21,14 @@ if adjoint:
 else:
     from torchdiffeq import odeint
 
-def ode_batch(ts, ys):
-    s = torch.from_numpy(np.random.choice(np.arange(train_size - batch_time, dtype=np.int64), batch_size, replace=True))
+
+
+def ode_batch():
+    s = torch.from_numpy(np.random.choice(np.arange(train_size - batch_time, dtype=np.int64), batch_size, replace=False))
 #     print(s)
-    batch_y0 = ys[s]  # (M, D)
-    batch_t = ts[:batch_time]  # (T)
-    batch_y = torch.stack([ys[s + i] for i in range(batch_time)], dim=0)  # (T, M, D)
+    batch_y0 = train_ys_shaped[s]  # (M, D)
+    batch_t = train_times[:batch_time]  # (T)
+    batch_y = torch.stack([train_ys_shaped[s + i] for i in range(batch_time)], dim=0)  # (T, M, D)
     return batch_y0, batch_t, batch_y
 
 
@@ -37,15 +39,27 @@ def visualize(pred_interpolation):
     #     pass
 
     x = train_times.flatten().numpy()
-    y = train_ys[:, 0, 0].flatten().numpy()
-    print(len(x))
-    print(len(y))
-    plt.scatter(x, y, c='b')
-    plt.scatter(test_times.numpy(), test_ys[:, 0, 0].numpy(), c='r')
-    plt.plot(eval_times.tolist(), pred_interpolation[:, 0, 0].flatten().tolist())
+    y = train_ys[:, 0].flatten().numpy()
+
+    # for dim > 1, # todo
+
+    # y = train_ys[:, 0, 0].flatten().numpy()
+    # print(len(x))
+    # print(len(y))
+    plt.scatter(x, y, c='b', s=0.5)
+    plt.scatter(test_times.numpy(), test_ys[:, 0].numpy(), c='r', s=0.5)
+    plt.plot(eval_times.tolist(), pred_interpolation[:, 0].flatten().tolist())
 
     plt.draw()
     plt.pause(1e-3)
+
+class Lambda(nn.Module):
+    def forward(self, t, y):
+        return torch.mm(y**3, true_A)
+
+
+# with torch.no_grad():
+#     true_y = odeint(Lambda(), true_y0, t, method='dopri5')
 
 # todo
 class Runner:
@@ -73,19 +87,19 @@ class ODEFunc(nn.Module):
 
 
 lc = LC(cols=['mjd', 'flux', 'flux_err'], groupby_cols=['object_id'])
-
+dim = lc.dim
 viz = True
 viz_at_end = True
 
 test_frac = 0.5
-split_type = 'cutoff'
+split_type = 'rand'
 test_freq = 5
 
 graph_3d = False
 
-# if lc.dim == 2:
+# if dim == 2:
 #     graph_3d = True
-# elif lc.dim > 2:
+# elif dim > 2:
 #     # todo, this is a jank bug catcher
 #     viz = False
 #     viz_at_end = False
@@ -95,18 +109,25 @@ graph_3d = False
 
 
 num_curves = len(lc)
-curve = lc[np.random.choice(num_curves)]
-
+# curve = lc[np.random.choice(num_curves)]
+# dim = lc.dim
+x = np.linspace(0, 100, 1000)
+# f = x * x
+f = 100 * np.cos(x/100)
+dim = 1
 # odeint takes time as 1d
-t = curve['mjd']
+# t = curve['mjd']
+t = x
 t_list = t.tolist()
-times = torch.tensor(t.values)
+# times = torch.tensor(t.values)
+times = torch.tensor(t).reshape(-1, 1)
 
 # exclude time from the data
-ys = torch.tensor(curve.drop(['mjd'], axis=1).values)
+# ys = torch.tensor(curve.drop(['mjd'], axis=1).values)
+ys = torch.tensor(f)
 # ys_list = ys.tolist()
 # .values, dtype=torch.double)
-ys_reshaped = ys.reshape(-1, 1, lc.dim)
+ys_reshaped = ys.reshape(-1, 1, dim)
 # ys_list = ys_reshaped.tolist()
 
 ys_list = list(ys_reshaped)
@@ -150,8 +171,8 @@ if split_type == 'cutoff':
     train_ys = ys_reshaped[ttrain]
     test_ys = ys_reshaped[ttest]
 
-    train_ys_shaped = train_ys.reshape(-1, 1, lc.dim)
-    test_ys_shaped = test_ys.reshape(-1, 1, lc.dim)
+    train_ys_shaped = train_ys.reshape(-1, 1, dim)
+    test_ys_shaped = test_ys.reshape(-1, 1, dim)
 
 
 if split_type == 'rand':
@@ -166,22 +187,22 @@ if split_type == 'rand':
     train_ys = ys_reshaped[ttrain]
     test_ys = ys_reshaped[ttest]
 
-    train_ys_shaped = train_ys.reshape(-1, 1, lc.dim)
-    test_ys_shaped = test_ys.reshape(-1, 1, lc.dim)
+    train_ys_shaped = train_ys.reshape(-1, 1, dim)
+    test_ys_shaped = test_ys.reshape(-1, 1, dim)
 
 
 train_size = len(train_times)
 print(f'train_size: {train_size}')
 
 batch_time = 10 #  train_size // 4
-batch_size = 20 #  train_size // 2
-
+batch_size = train_size // 2 #  train_size // 2
 
 epochs = 5
 niters = 100
-dim = lc.dim
+
 odefunc = ODEFunc(dim).double()
-optimizer = optim.RMSprop(odefunc.parameters(), lr=1e-2)
+optimizer = optim.RMSprop(odefunc.parameters(), lr=1e-3)
+criterion = nn.MSELoss()
 ii = 0
 losses = []
 
@@ -189,30 +210,32 @@ losses = []
 eval_times = torch.linspace(times.min(), times.max(), data_size*20).double()
 print(f'eval_times: {eval_times.dtype}')
 
-r_tol = 1e-3
-a_tol = 1e-3
+# r_tol = 1e-3
+# a_tol = 1e-4
 
 print(f'train_times : {train_times.dtype}, train_ys_shaped: {train_ys_shaped.dtype}')
 print(f'train_times.shape : {train_times.shape}, train_ys_shaped.shape: {train_ys_shaped.shape}')
 
-by0_f, bt_f, by_f = ode_batch(train_times, train_ys_shaped)
-print(f'by0.shape : {by0_f.shape}, bt.shape: {bt_f.shape}, by.shape: {by_f.shape}')
-print(f'by0.dtype : {by0_f.dtype}, bt.dtype: {bt_f.dtype}, by.dtype: {by_f.dtype}')
+batch_y0, batch_t, batch_y = ode_batch()
+print(f'by0.shape : {batch_y0.shape}, bt.shape: {batch_t.shape}, by.shape: {batch_y.shape}')
+print(f'by0.dtype : {batch_y0.dtype}, bt.dtype: {batch_t.dtype}, by.dtype: {batch_y.dtype}')
 
 
 for epoch in range(1, epochs + 1):
     for itr in range(1, niters + 1):
         optimizer.zero_grad()
-        by0_f, bt_f, by_f = ode_batch(train_times, train_ys_shaped)
-        # print(f'by0.shape : {by0_f.dtype}, bt.shape: {bt_f.dtype}, by.shape: {by_f.dtype}')
-        pred_f = odeint(odefunc, by0_f, bt_f, rtol=r_tol, atol=a_tol)
-        loss = torch.mean(torch.abs(pred_f - by_f))
+        batch_y0, batch_t, batch_y = ode_batch()
+        # print(f'by0.shape : {batch_y0.dtype}, bt.shape: {batch_t.dtype}, by.shape: {batch_y.dtype}')
+        pred_f = odeint(odefunc, batch_y0, batch_t)  #  , rtol=r_tol, atol=a_tol)
+        # loss = torch.abs(torch.sum(pred_f - batch_y))
+        loss = criterion(pred_f, batch_y)
+        # loss = torch.mean(torch.abs(pred_f - batch_y))
         loss.backward()
         optimizer.step()
         if itr % test_freq == 0:
             with torch.no_grad():
-                pred_interpolation = odeint(odefunc, y_0, eval_times, rtol=r_tol, atol=a_tol)
-                pred_f = odeint(odefunc, y_0, times, rtol=r_tol, atol=a_tol)
+                pred_interpolation = odeint(odefunc, y_0, eval_times)  # , rtol=r_tol, atol=a_tol)
+                pred_f = odeint(odefunc, y_0, times)  #  , rtol=r_tol, atol=a_tol)
                 loss = torch.mean(torch.abs(pred_f - ys))
                 losses.append(loss)
                 print('Iter {:04d} | Total Loss {:.6f}'.format(itr, loss.item()))

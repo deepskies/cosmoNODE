@@ -31,12 +31,19 @@ def ode_batch(ts, ys):
 
 
 def visualize(pred_interpolation):
+
     plt.cla()
-    plt.ylim(ys.min(), ys.max())
-    plt.xlim(times.min(), times.max())
-    plt.scatter(train_times.numpy(), train_ys.numpy(), c='b')
-    plt.scatter(test_times.numpy(), test_ys.numpy(), c='r')
-    plt.plot(eval_times.tolist(), pred_interpolation.flatten().tolist())
+    # if graph_3d:
+    #     pass
+
+    x = train_times.flatten().numpy()
+    y = train_ys[:, 0, 0].flatten().numpy()
+    print(len(x))
+    print(len(y))
+    plt.scatter(x, y, c='b')
+    plt.scatter(test_times.numpy(), test_ys[:, 0, 0].numpy(), c='r')
+    plt.plot(eval_times.tolist(), pred_interpolation[:, 0, 0].flatten().tolist())
+
     plt.draw()
     plt.pause(1e-3)
 
@@ -64,6 +71,9 @@ class ODEFunc(nn.Module):
     def forward(self, t, y):
         return self.net(y)
 
+
+lc = LC(cols=['mjd', 'flux', 'flux_err'], groupby_cols=['object_id'])
+
 viz = True
 viz_at_end = True
 
@@ -71,28 +81,17 @@ test_frac = 0.5
 split_type = 'cutoff'
 test_freq = 5
 
-lc = LC(cols=['mjd', 'flux', 'passband'], groupby_cols=['object_id'])
+graph_3d = False
 
-if lc.dim == 2:
-    graph_3d = True
-elif lc.dim > 2:
-    # todo, this is a jank bug catcher
-    viz = False
-    viz_at_end = False
-else:
-    graph_3d = True
+# if lc.dim == 2:
+#     graph_3d = True
+# elif lc.dim > 2:
+#     # todo, this is a jank bug catcher
+#     viz = False
+#     viz_at_end = False
+# else:
+#     graph_3d = False
 
-if viz:
-    plt.ion()
-    fig = plt.figure()
-    
-    if graph_3d:
-        ax = fig.add_subplot(111, projection='3d')
-    else:
-        ax = fig.add_subplot(111)
-
-    plt.draw()
-    plt.pause(1e-3)
 
 
 num_curves = len(lc)
@@ -120,11 +119,29 @@ y_0 = ys_reshaped[0]
 data_size = len(times) - 1
 split_idx = round(test_frac * data_size)
 
+if viz:
+    plt.ion()
+    # fig = plt.figure()
+
+
+    # if graph_3d:
+    #     ax = fig.add_subplot(111, projection='3d')
+    # else:
+    #     ax = fig.add_subplot(111)
+
+    # ax.ylim(ys.min(), ys.max())
+    # ax.xlim(times.min(), times.max())
+    plt.ylim(ys.min(), ys.max())
+    plt.xlim(times.min(), times.max())
+    plt.draw()
+    plt.pause(1e-3)
+
+
 if split_type == 'cutoff':
+
     train, test = utils.split_cutoff(data_size, test_frac)
 
     ttrain = torch.tensor(train)
-
     ttest = torch.tensor(test)
 
     train_times = times[ttrain]
@@ -133,12 +150,6 @@ if split_type == 'cutoff':
     train_ys = ys_reshaped[ttrain]
     test_ys = ys_reshaped[ttest]
 
-    # train_times = torch.tensor([t_list[train_elt] for train_elt in train])
-    # test_times = torch.tensor([t_list[test_elt] for test_elt in test])
-    #
-    # train_ys = torch.tensor([ys_list[train_elt] for train_elt in train])
-    # test_ys = torch.tensor([ys_list[test_elt] for test_elt in test])
-
     train_ys_shaped = train_ys.reshape(-1, 1, lc.dim)
     test_ys_shaped = test_ys.reshape(-1, 1, lc.dim)
 
@@ -146,11 +157,14 @@ if split_type == 'cutoff':
 if split_type == 'rand':
     train, test = utils.split_rand(data_size, test_frac)
 
-    train_times = torch.tensor([t_list[train_elt] for train_elt in train])
-    test_times = torch.tensor([t_list[test_elt] for test_elt in test])
+    ttrain = torch.tensor(train)
+    ttest = torch.tensor(test)
 
-    train_ys = torch.tensor([ys_list[train_elt] for train_elt in train])
-    test_ys = torch.tensor([ys_list[test_elt] for test_elt in test])
+    train_times = times[ttrain]
+    test_times = times[ttest]
+
+    train_ys = ys_reshaped[ttrain]
+    test_ys = ys_reshaped[ttest]
 
     train_ys_shaped = train_ys.reshape(-1, 1, lc.dim)
     test_ys_shaped = test_ys.reshape(-1, 1, lc.dim)
@@ -159,11 +173,9 @@ if split_type == 'rand':
 train_size = len(train_times)
 print(f'train_size: {train_size}')
 
-batch_time = train_size // 4
-batch_size = train_size // 2
+batch_time = 10 #  train_size // 4
+batch_size = 20 #  train_size // 2
 
-# print(f'train_times: {train_times}')
-# print(f'train_ys: {train_ys}')
 
 epochs = 5
 niters = 100
@@ -177,8 +189,8 @@ losses = []
 eval_times = torch.linspace(times.min(), times.max(), data_size*20).double()
 print(f'eval_times: {eval_times.dtype}')
 
-r_tol = 1e-1
-a_tol = 1e-1
+r_tol = 1e-3
+a_tol = 1e-3
 
 print(f'train_times : {train_times.dtype}, train_ys_shaped: {train_ys_shaped.dtype}')
 print(f'train_times.shape : {train_times.shape}, train_ys_shaped.shape: {train_ys_shaped.shape}')

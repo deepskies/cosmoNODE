@@ -10,7 +10,7 @@ from torch.utils.data import Dataset
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 
-from cosmoNODE import macros as m
+from cosmoNODE import utils as m  # m for macros
 
 "I'm just hoarding dataloader tech debt at this point"
 
@@ -44,14 +44,16 @@ abs_file_path = os.path.join(script_dir, rel_path)
 """
 
 class LC(Dataset):
-	def __init__(self, fn='training_set', group_cols=['object_id', 'passband'], ):
+	def __init__(self, fn='training_set', cols=['mjd', 'flux'], groupby_cols=['object_id', 'passband']):
 		self.df = pd.read_csv('./demos/data/' + fn + '.csv')
-		self.groups = self.df.groupby(group_cols)
+		self.cols = cols
+		self.dim = len(cols) - 1
+		self.groups = self.df.groupby(groupby_cols)
 		self.groups = [group[1] for group in self.groups]
 		self.num_groups = len(self.groups)
 
 	def __getitem__(self, index):
-		return self.groups[index][['mjd', 'flux']]
+		return self.groups[index][self.cols]
 
 	def __len__(self):
 		return self.num_groups

@@ -14,7 +14,7 @@ device = torch.device('cpu')
 
 ''' this is an adapted version of ricky's ode_demo.py '''
 
-adjoint = True
+adjoint = False
 
 if adjoint:
     from torchdiffeq import odeint_adjoint as odeint
@@ -39,11 +39,13 @@ def visualize(pred_interpolation):
     #     pass
 
     x = train_times.flatten().numpy()
+    # even if we pass many columns to y we just take the first column (assumed to be flux)
     y = train_ys[:, 0].flatten().numpy()
 
     # for dim > 1, # todo
-
-    # y = train_ys[:, 0, 0].flatten().numpy()
+    # print(len(x))
+    # print(len(y))
+    # # y = train_ys[:, 0, 0].flatten().numpy()
     # print(len(x))
     # print(len(y))
     plt.scatter(x, y, c='b', s=0.5)
@@ -66,6 +68,12 @@ class Runner:
     def __init__(self):
         pass
 
+    def __iter__(self):
+        pass
+
+    def __next__(self):
+        pass
+
 class ODEFunc(nn.Module):
 
     def __init__(self, dim):
@@ -86,14 +94,15 @@ class ODEFunc(nn.Module):
         return self.net(y)
 
 
-lc = LC(cols=['mjd', 'flux', 'flux_err'], groupby_cols=['object_id'])
+lc = LC(cols=['mjd', 'flux', 'passband', 'flux_err', 'detected'], groupby_cols=['object_id'], meta=True)
+# lc = LC(cols=['mjd', 'flux'])
 dim = lc.dim
 viz = True
 viz_at_end = True
 
 test_frac = 0.5
 split_type = 'rand'
-test_freq = 5
+test_freq = 50
 
 graph_3d = False
 
@@ -106,27 +115,31 @@ graph_3d = False
 # else:
 #     graph_3d = False
 
-
-
 num_curves = len(lc)
+curve = lc[0]
 # curve = lc[np.random.choice(num_curves)]
-# dim = lc.dim
-x = np.linspace(0, 100, 1000)
+curve = curve.sort_values(by='mjd')
+dim = lc.dim
+# x = np.linspace(0, 100, 1000)
+
 # f = x * x
-f = 100 * np.cos(x/100)
-dim = 1
+
+# f = 100 * np.cos(x/100)
+# dim = 1
 # odeint takes time as 1d
-# t = curve['mjd']
-t = x
+t = curve['mjd']
+# t = x
 t_list = t.tolist()
-# times = torch.tensor(t.values)
-times = torch.tensor(t).reshape(-1, 1)
+times = torch.tensor(t.values)
+# times = torch.tensor(t).reshape(-1, 1)
 
 # exclude time from the data
-# ys = torch.tensor(curve.drop(['mjd'], axis=1).values)
-ys = torch.tensor(f)
+ys = torch.tensor(curve.drop(['mjd'], axis=1).values)
+
+# ys = torch.tensor(f)
 # ys_list = ys.tolist()
 # .values, dtype=torch.double)
+
 ys_reshaped = ys.reshape(-1, 1, dim)
 # ys_list = ys_reshaped.tolist()
 
@@ -144,7 +157,6 @@ if viz:
     plt.ion()
     # fig = plt.figure()
 
-
     # if graph_3d:
     #     ax = fig.add_subplot(111, projection='3d')
     # else:
@@ -159,33 +171,26 @@ if viz:
 
 
 if split_type == 'cutoff':
+    train, test = utils.split(data_size, test_frac, type=split_type)
 
-    train, test = utils.split_cutoff(data_size, test_frac)
+    train_times = times[train]
+    test_times = times[test]
 
-    ttrain = torch.tensor(train)
-    ttest = torch.tensor(test)
-
-    train_times = times[ttrain]
-    test_times = times[ttest]
-
-    train_ys = ys_reshaped[ttrain]
-    test_ys = ys_reshaped[ttest]
+    train_ys = ys[train]
+    test_ys = ys[test]
 
     train_ys_shaped = train_ys.reshape(-1, 1, dim)
     test_ys_shaped = test_ys.reshape(-1, 1, dim)
 
 
 if split_type == 'rand':
-    train, test = utils.split_rand(data_size, test_frac)
+    train, test = utils.split(data_size, test_frac, type=split_type)
 
-    ttrain = torch.tensor(train)
-    ttest = torch.tensor(test)
+    train_times = times[train]
+    test_times = times[test]
 
-    train_times = times[ttrain]
-    test_times = times[ttest]
-
-    train_ys = ys_reshaped[ttrain]
-    test_ys = ys_reshaped[ttest]
+    train_ys = ys[train]
+    test_ys = ys[test]
 
     train_ys_shaped = train_ys.reshape(-1, 1, dim)
     test_ys_shaped = test_ys.reshape(-1, 1, dim)
@@ -198,7 +203,7 @@ batch_time = 10 #  train_size // 4
 batch_size = train_size // 2 #  train_size // 2
 
 epochs = 5
-niters = 100
+niters = 1000
 
 odefunc = ODEFunc(dim).double()
 optimizer = optim.RMSprop(odefunc.parameters(), lr=1e-3)
@@ -225,22 +230,23 @@ for epoch in range(1, epochs + 1):
     for itr in range(1, niters + 1):
         optimizer.zero_grad()
         batch_y0, batch_t, batch_y = ode_batch()
-        # print(f'by0.shape : {batch_y0.dtype}, bt.shape: {batch_t.dtype}, by.shape: {batch_y.dtype}')
         pred_f = odeint(odefunc, batch_y0, batch_t)  #  , rtol=r_tol, atol=a_tol)
+        pred_f = pred_f.view(batch_y.shape)
         # loss = torch.abs(torch.sum(pred_f - batch_y))
         loss = criterion(pred_f, batch_y)
-        # loss = torch.mean(torch.abs(pred_f - batch_y))
+        # loss = torch.mean(torch.abs(pred_f - batch_y))  # loss fxn from ricky
         loss.backward()
         optimizer.step()
         if itr % test_freq == 0:
             with torch.no_grad():
                 pred_interpolation = odeint(odefunc, y_0, eval_times)  # , rtol=r_tol, atol=a_tol)
                 pred_f = odeint(odefunc, y_0, times)  #  , rtol=r_tol, atol=a_tol)
-                loss = torch.mean(torch.abs(pred_f - ys))
+                # loss = torch.mean(torch.abs(pred_f - ys))
+                loss = criterion(pred_f, ys)
                 losses.append(loss)
-                print('Iter {:04d} | Total Loss {:.6f}'.format(itr, loss.item()))
+                print('Epoch {} | Iter {:04d} | Total Loss {:.6f}'.format(epoch, itr, loss.item()))
                 if viz:
-                    visualize(pred_interpolation)
+                    visualize(pred_interpolation.squeeze())
                 ii += 1
 
 if viz_at_end:

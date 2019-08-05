@@ -34,29 +34,49 @@ def scale_df(df):
 	return df
 
 
-def split_rand(length, test_frac):
-    # given int (representing timeseries length) and fraction to sample
-    # returns np array of ints corresponding to the indices of the data
-    # i'm not passing the data itself to this because i imagine that it would be slower
+def split(length, test_frac, type='rand'):
+	if type == 'rand':
+		indices, split_idx = split_index(length, test_frac)
+		cp = indices.copy()
+		np.random.shuffle(cp)
+		test_indices = cp[1:split_idx]  # need t0 in train
+		train_indices = np.delete(indices, test_indices)
 
-    indices, split_idx = split_index(length, test_frac)
+	elif type == 'cutoff':
+		train_frac = 1 - test_frac
+		indices, split_idx = split_index(length, train_frac)
+		train_indices = indices[:split_idx]
+		test_indices = indices[split_idx:]
 
-    cp = indices.copy()
-    np.random.shuffle(cp)
-    test_indices = cp[1:split_idx]  # need t0 in train
-    train_indices = np.delete(indices, test_indices)
-    return train_indices, test_indices
-
-
-def split_cutoff(length, test_frac):
-    train_frac = 1 - test_frac
-    indices, split_idx = split_index(length, train_frac)
-    train_indices = indices[:split_idx]
-    test_indices = indices[split_idx:]
-    return train_indices, test_indices
+	else:
+		print('unsupported split type')
+		return
+	train_indices = torch.tensor(train_indices, dtype=torch.long)
+	test_indices = torch.tensor(test_indices, dtype=torch.long)
+	return train_indices, test_indices
 
 
 def split_index(length, test_frac):
     indices = np.arange(length)
     split_idx = round(test_frac * length)
     return indices, split_idx
+
+
+def records():
+	df = pd.read_csv('./demos/data/training_set.csv')
+	meta = pd.read_csv('./demos/data/training_set_metadata.csv')
+	merge = pd.merge(df, meta, on='object_id')
+	groups = merge.groupby('object_id')
+	labels = sorted(merge['target'].unique())
+	curves = []
+	for i, group in enumerate(groups):
+	    object_id = group[0]
+	    data = group[1]
+	    times = data['mjd'].values
+	    values = data.drop(['mjd', 'target'], axis=1).fillna(0).values
+	    mask = np.ones(values.shape)
+	    label = labels.index(data['target'].iloc[0])
+	    record = (object_id, times, values, mask, label)
+	    curves.append(record)
+
+	return curves

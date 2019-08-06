@@ -62,21 +62,46 @@ def split_index(length, test_frac):
     return indices, split_idx
 
 
-def records():
-	df = pd.read_csv('./demos/data/training_set.csv')
-	meta = pd.read_csv('./demos/data/training_set_metadata.csv')
-	merge = pd.merge(df, meta, on='object_id')
-	groups = merge.groupby('object_id')
-	labels = sorted(merge['target'].unique())
-	curves = []
-	for i, group in enumerate(groups):
-	    object_id = group[0]
-	    data = group[1]
-	    times = data['mjd'].values
-	    values = data.drop(['mjd', 'target'], axis=1).fillna(0).values
-	    mask = np.ones(values.shape)
-	    label = labels.index(data['target'].iloc[0])
-	    record = (object_id, times, values, mask, label)
-	    curves.append(record)
+class FluxNet(object):
+	def __init__(self):
+		self.df = pd.read_csv('./demos/data/training_set.csv')
+		self.meta = pd.read_csv('./demos/data/training_set_metadata.csv')
+		self.merge = pd.merge(self.df, self.meta, on='object_id')
 
-	return curves
+		self.params = self.merge.columns.drop(['object_id', 'mjd', 'target'])
+		self.labels = sorted(self.merge['target'].unique())
+
+		self.groups = self.merge.groupby('object_id')
+		self.curves = []
+		self.get_curves()
+		self.length = len(self.curves)
+
+	def get_curves(self):
+		for i, group in enumerate(self.groups):
+			object_id = group[0]
+			data = group[1]
+			times = data['mjd'].values
+			values = data.drop(['mjd', 'target'], axis=1).fillna(0).values
+			mask = np.ones(values.shape)
+			target = data['target'].iloc[0]
+			# label = labels.index(data['target'].iloc[0])
+			label = one_hot(self.labels, target)
+			record = (object_id, times, values, mask, label)
+			self.curves.append(record)
+
+	def __getitem__(self, index):
+		return self.curves[index]
+
+	def __len__(self):
+		return self.length
+	#
+	# def get_label(self, object_id):
+	# 	return self.labels[record_id]
+
+
+def one_hot(classes, target):
+	# classes is list of ints, target is an int in the list
+	class_index = classes.index(target)
+	target_tensor = torch.zeros(len(classes), dtype=torch.double)
+	target_tensor[class_index] = 1
+	return target_tensor

@@ -56,7 +56,7 @@ def visualize(pred_interpolation, itr):
     plt.plot(eval_times.tolist(), pred_interpolation[:, 0].tolist())
 
     plt.draw()
-    fig.savefig('./media/ode_flux_2_' + str(itr) + '.jpg')
+    fig.savefig('./media/tests/ode_flux_pb_2_' + str(itr) + '.jpg')
     plt.pause(1e-3)
 
 class Lambda(nn.Module):
@@ -99,7 +99,7 @@ class ODEFunc(nn.Module):
 
 
 # lc = LC(cols=['mjd', 'flux', 'passband', 'flux_err', 'detected'], groupby_cols=['object_id'], meta=True)
-lc = LC(cols=['mjd', 'flux'], groupby_cols=['object_id'])
+lc = LC(cols=['mjd', 'flux'])  # , groupby_cols=['object_id'])
 dim = lc.dim
 viz = True
 viz_at_end = True
@@ -120,8 +120,8 @@ graph_3d = False
 #     graph_3d = False
 
 num_curves = len(lc)
-curve = lc[0]
-# curve = lc[np.random.choice(num_curves)]
+# curve = lc[0]
+curve = lc[np.random.choice(num_curves)]
 curve = curve.sort_values(by='mjd')
 dim = lc.dim
 # x = np.linspace(0, 100, 1000)
@@ -211,7 +211,7 @@ epochs = 5
 niters = 1000
 
 odefunc = ODEFunc(dim).double()
-optimizer = optim.RMSprop(odefunc.parameters(), lr=1e-1)
+optimizer = optim.RMSprop(odefunc.parameters(), lr=1e-2)
 criterion = nn.MSELoss()
 ii = 0
 losses = []
@@ -220,8 +220,8 @@ losses = []
 eval_times = torch.linspace(times.min(), times.max(), data_size*20).double()
 print(f'eval_times: {eval_times.shape}')
 
-r_tol = 1e-1
-a_tol = 1e-1
+r_tol = 1
+a_tol = 1
 
 print(f'train_times : {train_times.dtype}, train_ys_shaped: {train_ys_shaped.dtype}')
 print(f'train_times.shape : {train_times.shape}, train_ys_shaped.shape: {train_ys_shaped.shape}')
@@ -235,18 +235,19 @@ for epoch in range(1, epochs + 1):
     for itr in range(1, niters + 1):
         optimizer.zero_grad()
         batch_y0, batch_t, batch_y = ode_batch()
-        pred_f = odeint(odefunc, batch_y0, batch_t)  #  , rtol=r_tol, atol=a_tol)
+        pred_f = odeint(odefunc, batch_y0, batch_t, rtol=r_tol, atol=a_tol)
         pred_f = pred_f.view(batch_y.shape)
         # loss = torch.abs(torch.sum(pred_f - batch_y))
         loss = criterion(pred_f, batch_y)
+        print(loss.item())
         # loss = torch.mean(torch.abs(pred_f - batch_y))  # loss fxn from ricky
         loss.backward()
         optimizer.step()
         if itr % test_freq == 0:
             with torch.no_grad():
-                pred_interpolation = odeint(odefunc, y_0, eval_times)  # , rtol=r_tol, atol=a_tol)
+                pred_interpolation = odeint(odefunc, y_0, eval_times rtol=r_tol, atol=a_tol)
                 print(f'pred_interpolation: {pred_interpolation.shape}')
-                pred_f = odeint(odefunc, y_0, times)  #  , rtol=r_tol, atol=a_tol)
+                pred_f = odeint(odefunc, y_0, times, rtol=r_tol, atol=a_tol)
                 # loss = torch.mean(torch.abs(pred_f - ys))
                 if dim > 1:
                     pred_f = pred_f.squeeze()

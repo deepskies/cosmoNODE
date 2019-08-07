@@ -23,3 +23,5 @@ kaggle.json
 cosmoNODE.egg-info/
 dist/
 build/
+
+/media/tests

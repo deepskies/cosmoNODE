@@ -5,6 +5,8 @@ import numpy as np
 import torch
 from sklearn import preprocessing
 
+import cosmoNODE
+
 ID = 'object_id'
 DATA = './demos/data/'  # location of the data folder wrt the root directory
 
@@ -64,32 +66,36 @@ def split_index(length, test_frac):
 
 class FluxNet(object):
 	def __init__(self):
-		self.df = pd.read_csv('./demos/data/training_set.csv')
-		self.meta = pd.read_csv('./demos/data/training_set_metadata.csv')
+		self.df = pd.read_csv(cosmoNODE.__path__[0] + '/../demos/data/training_set.csv')
+		self.meta = pd.read_csv(cosmoNODE.__path__[0] + '/../demos/data/training_set_metadata.csv')
 		self.merged = pd.merge(self.df, self.meta, on='object_id')
 
 		self.mins = self.merged.min()
 		self.maxes = self.merged.max()
 
 		self.params = self.merged.columns.drop(['object_id', 'mjd', 'target'])
-		self.labels = sorted(self.merged['target'].unique())
-		self.num_classes = len(self.labels)
+		self.classes = sorted(self.merged['target'].unique())
+		self.num_classes = len(self.classes)
+
+		self.labels = []
 
 		self.groups = self.merged.groupby('object_id')
 		self.curves = []
 		self.get_curves()
 		self.length = len(self.curves)
+		print('fluxnet loaded')
 
 	def get_curves(self):
 		for i, group in enumerate(self.groups):
 			object_id = group[0]
 			data = group[1]
-			times = torch.tensor(data['mjd'].values)
-			values = torch.tensor(data.drop(['mjd', 'target'], axis=1).fillna(0).values)
-			mask = torch.ones(values.shape)
+			times = torch.tensor(data['mjd'].values, dtype=torch.float)
+			values = torch.tensor(data.drop(['mjd', 'target'], axis=1).fillna(0).values, dtype=torch.float)
+			mask = torch.ones(values.shape, dtype=torch.float)
 			target = data['target'].iloc[0]
 			# label = labels.index(data['target'].iloc[0])
-			label = one_hot(self.labels, target)
+			label = one_hot(self.classes, target)
+			self.labels.append(label)
 			record = (object_id, times, values, mask, label)
 			self.curves.append(record)
 
@@ -100,8 +106,8 @@ class FluxNet(object):
 		# number of light curves in the dataset
 		return self.length
 	#
-	# def get_label(self, object_id):
-	# 	return self.labels[record_id]
+	def get_label(self, index):
+		return self.labels[record_id]
 
 
 def one_hot(classes, target):
@@ -112,7 +118,15 @@ def one_hot(classes, target):
 	return target_tensor
 
 
-def variable_time_collate_fn(batch, args, device = torch.device("cpu"), data_type = "train",
+def ode_batch(t, y, train_size, batch_time, batch_size):
+    s = torch.from_numpy(np.random.choice(np.arange(train_size - batch_time, dtype=np.int64), batch_size, replace=False))
+    batch_y0 = y[s]  # (M, D)
+    batch_t = t[:batch_time]  # (T)
+    batch_y = torch.stack([y[s + i] for i in range(batch_time)], dim=0)  # (T, M, D)
+    return batch_y0, batch_t, batch_y
+
+
+def variable_time_collate_fn(batch, device = torch.device("cpu"), data_type = "train",
 	data_min = None, data_max = None):
 	"""
 	Expects a batch of time series data in the form of (record_id, tt, vals, mask, labels) where
@@ -141,6 +155,9 @@ def variable_time_collate_fn(batch, args, device = torch.device("cpu"), data_typ
 	combined_labels = combined_labels.to(device = device)
 
 	for b, (record_id, tt, vals, mask, labels) in enumerate(batch):
+		tt = tt.float()
+		vals = vals.float()
+		mask = mask.float()
 		tt = tt.to(device)
 		vals = vals.to(device)
 		mask = mask.to(device)
@@ -156,8 +173,8 @@ def variable_time_collate_fn(batch, args, device = torch.device("cpu"), data_typ
 		if labels is not None:
 			combined_labels[b] = labels
 
-	combined_vals, _, _ = utils.normalize_masked_data(combined_vals, combined_mask,
-		att_min = data_min, att_max = data_max)
+	# combined_vals, _, _ = utils.normalize_masked_data(combined_vals, combined_mask,
+	# 	att_min = data_min, att_max = data_max)
 
 	if torch.max(combined_tt) != 0.:
 		combined_tt = combined_tt / torch.max(combined_tt)
@@ -168,7 +185,7 @@ def variable_time_collate_fn(batch, args, device = torch.device("cpu"), data_typ
 		"mask": combined_mask,
 		"labels": combined_labels[:,4]}
 
-	data_dict = utils.split_and_subsample_batch(data_dict, args, data_type = data_type)
+	# data_dict = utils.split_and_subsample_batch(data_dict, args, data_type = data_type)
 	return data_dict
 
 
@@ -182,3 +199,21 @@ def inf_generator(iterable):
 			yield iterator.__next__()
 		except StopIteration:
 			iterator = iterable.__iter__()
+#
+# def create_net(n_inputs, n_outputs, n_layers = 1,
+# 	n_units = 100, nonlinear = nn.Tanh):
+# 	layers = [nn.Linear(n_inputs, n_units)]
+# 	for i in range(n_layers):
+# 		layers.append(nonlinear())
+# 		layers.append(nn.Linear(n_units, n_units))
+#
+# 	layers.append(nonlinear())
+# 	layers.append(nn.Linear(n_units, n_outputs))
+# 	return nn.Sequential(*layers)
+#
+#
+# def init_network_weights(net, std = 0.1):
+# 	for m in net.modules():
+# 		if isinstance(m, nn.Linear):
+# 			nn.init.normal_(m.weight, mean=0, std=std)
+# 			nn.init.constant_(m.bias, val=0)

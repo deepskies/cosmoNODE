@@ -32,7 +32,8 @@ def ode_batch():
     return batch_y0, batch_t, batch_y
 
 
-def visualize(pred_interpolation):
+def visualize(pred_interpolation, itr):
+
 
     plt.cla()
     # if graph_3d:
@@ -41,7 +42,9 @@ def visualize(pred_interpolation):
     x = train_times.flatten().numpy()
     # even if we pass many columns to y we just take the first column (assumed to be flux)
     y = train_ys[:, 0].flatten().numpy()
-
+    fig.suptitle('N-ODE Light Curve Estimate', fontsize=20)
+    plt.xlabel('Iteration', fontsize=18)
+    plt.ylabel('Flux', fontsize=16)
     # for dim > 1, # todo
     # print(len(x))
     # print(len(y))
@@ -50,9 +53,10 @@ def visualize(pred_interpolation):
     # print(len(y))
     plt.scatter(x, y, c='b', s=0.5)
     plt.scatter(test_times.numpy(), test_ys[:, 0].numpy(), c='r', s=0.5)
-    plt.plot(eval_times.tolist(), pred_interpolation[:, 0].flatten().tolist())
+    plt.plot(eval_times.tolist(), pred_interpolation[:, 0].tolist())
 
     plt.draw()
+    fig.savefig('./media/ode_flux_2_' + str(itr) + '.jpg')
     plt.pause(1e-3)
 
 class Lambda(nn.Module):
@@ -94,14 +98,14 @@ class ODEFunc(nn.Module):
         return self.net(y)
 
 
-lc = LC(cols=['mjd', 'flux', 'passband', 'flux_err', 'detected'], groupby_cols=['object_id'], meta=True)
-# lc = LC(cols=['mjd', 'flux'])
+# lc = LC(cols=['mjd', 'flux', 'passband', 'flux_err', 'detected'], groupby_cols=['object_id'], meta=True)
+lc = LC(cols=['mjd', 'flux'], groupby_cols=['object_id'])
 dim = lc.dim
 viz = True
 viz_at_end = True
 
 test_frac = 0.5
-split_type = 'rand'
+split_type = 'cutoff'
 test_freq = 50
 
 graph_3d = False
@@ -155,6 +159,7 @@ split_idx = round(test_frac * data_size)
 
 if viz:
     plt.ion()
+    fig = plt.figure()
     # fig = plt.figure()
 
     # if graph_3d:
@@ -206,17 +211,17 @@ epochs = 5
 niters = 1000
 
 odefunc = ODEFunc(dim).double()
-optimizer = optim.RMSprop(odefunc.parameters(), lr=1e-3)
+optimizer = optim.RMSprop(odefunc.parameters(), lr=1e-1)
 criterion = nn.MSELoss()
 ii = 0
 losses = []
 
 # used for plotting
 eval_times = torch.linspace(times.min(), times.max(), data_size*20).double()
-print(f'eval_times: {eval_times.dtype}')
+print(f'eval_times: {eval_times.shape}')
 
-# r_tol = 1e-3
-# a_tol = 1e-4
+r_tol = 1e-1
+a_tol = 1e-1
 
 print(f'train_times : {train_times.dtype}, train_ys_shaped: {train_ys_shaped.dtype}')
 print(f'train_times.shape : {train_times.shape}, train_ys_shaped.shape: {train_ys_shaped.shape}')
@@ -240,19 +245,28 @@ for epoch in range(1, epochs + 1):
         if itr % test_freq == 0:
             with torch.no_grad():
                 pred_interpolation = odeint(odefunc, y_0, eval_times)  # , rtol=r_tol, atol=a_tol)
+                print(f'pred_interpolation: {pred_interpolation.shape}')
                 pred_f = odeint(odefunc, y_0, times)  #  , rtol=r_tol, atol=a_tol)
                 # loss = torch.mean(torch.abs(pred_f - ys))
+                if dim > 1:
+                    pred_f = pred_f.squeeze()
+                    pred_interpolation = pred_interpolation.squeeze()
+
                 loss = criterion(pred_f, ys)
                 losses.append(loss)
                 print('Epoch {} | Iter {:04d} | Total Loss {:.6f}'.format(epoch, itr, loss.item()))
                 if viz:
-                    visualize(pred_interpolation.squeeze())
+                    visualize(pred_interpolation, epoch * itr)
                 ii += 1
 
 if viz_at_end:
     print(losses)
     loss_over_time = [i for i in range(len(losses))]
     plt.plot(loss_over_time, losses)
+    fig.suptitle('N-ODE Light Curve Estimate', fontsize=20)
+    plt.xlabel('Iteration', fontsize=18)
+    plt.ylabel('Flux', fontsize=16)
+    fig.savefig('./media/ode_flux' + str(itr) + '.jpg')
     plt.show()
     plt.pause(5)
     plt.ioff()

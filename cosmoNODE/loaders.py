@@ -2,8 +2,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-import tensorflow as tf
-
 import torch
 from torch.utils.data import Dataset
 
@@ -44,9 +42,16 @@ abs_file_path = os.path.join(script_dir, rel_path)
 """
 
 class LC(Dataset):
-	def __init__(self, fn='training_set', cols=['mjd', 'flux'], groupby_cols=['object_id', 'passband']):
+	def __init__(self, fn='training_set', cols=['mjd', 'flux'], groupby_cols=['object_id', 'passband'], meta=False, meta_cols=['ra', 'decl', 'gal_l', 'gal_b', 'ddf', 'hostgal_specz', 'hostgal_photoz', 'hostgal_photoz_err', 'distmod', 'mwebv', 'target']):
 		self.df = pd.read_csv('./demos/data/' + fn + '.csv')
 		self.cols = cols
+		if meta:
+			meta_fn = fn + '_metadata'
+			self.meta = pd.read_csv('./demos/data/' + meta_fn + '.csv')
+			self.meta = self.meta.fillna(value=0)
+			self.df = pd.merge(self.df, self.meta, on='object_id')
+			self.cols += meta_cols
+
 		self.dim = len(cols) - 1
 		self.groups = self.df.groupby(groupby_cols)
 		self.groups = [group[1] for group in self.groups]

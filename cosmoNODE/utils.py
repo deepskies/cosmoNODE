@@ -107,7 +107,7 @@ class FluxNet(object):
 		return self.length
 	#
 	def get_label(self, index):
-		return self.labels[record_id]
+		return self.labels[index]
 
 
 def one_hot(classes, target):

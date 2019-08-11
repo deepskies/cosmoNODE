@@ -50,4 +50,4 @@ function train(data):
     for d in data
         # d looks like (data, labels)
         println(d)
-        l = loss(d...)
+        l = Flux.crossentropy(d)

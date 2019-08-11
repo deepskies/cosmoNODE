@@ -25,3 +25,5 @@ dist/
 build/
 
 /media/tests
+
+/jl/.ipynb_checkpoints/

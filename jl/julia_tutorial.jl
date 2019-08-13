@@ -28,7 +28,6 @@ classes = sort(unique(targets))
 labels = Flux.onehotbatch(targets, classes)
 data = zip(curves, labels)
 
-
 curve = curves[1]
 
 lc = convert(Matrix, obj[:, [:mjd, :flux]])'  # ' is transpose

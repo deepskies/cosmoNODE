@@ -33,11 +33,11 @@ if __name__ == '__main__':
 
     device = torch.device('cuda:' if torch.cuda.is_available() else 'cpu')
 
-    anode = ODENet(device, data_dim=1, hidden_dim=16,
-            output_dim=14, augment_dim=1)
+    anode = ODENet(device, data_dim=704, hidden_dim=100,
+            output_dim=14, augment_dim=10)
 
     optimizer = torch.optim.Adam(anode.parameters(), lr=1e-3)
     trainer = Trainer(anode, optimizer, device, classification=True, save_dir=('demos/ode_models', '/light_curve0'))
 
     # Train model on your dataloader
-    trainer.train(data_loader, num_epochs=1)
+    trainer.train(data_loader, num_epochs=10)

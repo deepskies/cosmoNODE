@@ -101,7 +101,7 @@ class Trainer():
                 total += y_batch.size(0)
                 correct += (predicted == y_batch).sum().item()
                 accuracy = correct/total
-                print(accuracy)
+                # print(accuracy)
                 accuracies.append(accuracy)
                 self.histories['batch_accuracies'].append(accuracy)
 

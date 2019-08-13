@@ -225,7 +225,7 @@ class ODENet(nn.Module):
     """
     def __init__(self, device, data_dim, hidden_dim, output_dim=1,
                  augment_dim=0, time_dependent=False, non_linearity='relu',
-                 tol=1e-3, adjoint=False):
+                 tol=1e-7, adjoint=False):
         super(ODENet, self).__init__()
         self.device = device
         self.data_dim = data_dim

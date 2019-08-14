@@ -43,6 +43,10 @@ function onehot_batch_to_vec(one_hotted_batch)
 end
 
 
+# given (n, 1) array, converts to vector of max_seq_len
+function pad_lc(lc, max_seq_len)
+    veclc = vec(lc)
+    pad = 
 
 # function train()
 data = FluxLoader()

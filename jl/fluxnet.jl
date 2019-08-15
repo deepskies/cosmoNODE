@@ -11,6 +11,10 @@ function FluxLoader()
     classes = sort(unique(targets))
     labels = Flux.onehotbatch(targets, classes)  # Y
 
+    padded_lcs = []
+    for curve in curves
+        padded_lc = pad_lc(curve)
+        append!(padded_lcs, padded_lc)
     label_vec = onehot_batch_to_vec(labels)
 
     data = zip(curves, label_vec)
@@ -18,14 +22,27 @@ function FluxLoader()
 end
 
 
+function seq_max_len_loop(grouped_df)
+    max_seq_len = 0
+    for g in grouped_df
+        g_len = size(g[:, 1])[1]
+        if g_len > max_seq_len
+            max_seq_len = g_len
+        end
+    end
+    return g_len
+end
+
+
 # this is probably super inefficient and could be done w a single 'by' call
 function data_from_subdfs(grouped_df)
+    max_seq_len = by()
     curves = []
     for subdf in grouped_df
         sdf_data = convert(Matrix, select(subdf, [:mjd, :flux]))
 
         # flatten
-        sdf_data = reshape(sdf_data, length(sdf_data), 1)
+        sdf_data = reshape(sdf_data, length(sdf_data))
         # append to lc list
         append!(curves, [sdf_data])
     end
@@ -43,10 +60,15 @@ function onehot_batch_to_vec(one_hotted_batch)
 end
 
 
-# given (n, 1) array, converts to vector of max_seq_len
+# given (n, ) array, converts to vector of max_seq_len
 function pad_lc(lc, max_seq_len)
-    veclc = vec(lc)
-    pad = 
+    lc_len = length(lc)
+    vec_lc = vec(lc)
+    padding = zeros(max_seq_len - lc_len)
+    append!(vec_lc, padding)
+    return vec_lc
+
+
 
 # function train()
 data = FluxLoader()

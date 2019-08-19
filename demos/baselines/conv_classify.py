@@ -22,7 +22,7 @@ This is problematic and needs to be fixed.
 '''
 
 class Conv1DNet(nn.Module):
-    def __init__(self, input_dim=704, output_dim=14, batching_size=12):
+    def __init__(self, input_dim=704, output_dim=14, batching_size=16):
         super(Conv1DNet, self).__init__()
         self.in_dim = input_dim
         self.out_dim = output_dim
@@ -122,8 +122,10 @@ class Conv2DNet(nn.Module):
 
 def get_ksizes(delta):
     ksizes = []
+
     rough_layer_count = math.log2(delta)
     num_layers = round(rough_layer_count)
+
     for i in range(num_layers):
         pow = num_layers - i
         ksize = (2 ** (pow - 1)) + 1
@@ -145,13 +147,12 @@ def get_layers(x, ksizes, max_channels=64):
         if channels < max_channels:
             channels = prev_channels * 2
 
-        # why does python not have switch statements
-        if in_dim == 3:
-            layer = nn.Conv1d(prev_channels, channels, kernel_size=ksize)
-        elif in_dim == 4:
-            layer = nn.Conv2d(prev_channels, channels, kernel_size=ksize)
-        elif in_dim == 5:  # [B, C, D, H, W]
-            layer = nn.Conv3d(prev_channels, channels, kernel_size=ksize)
+        # if in_dim == 3:
+        layer = nn.Conv1d(prev_channels, channels, kernel_size=ksize)
+        # elif in_dim == 4:
+        #     layer = nn.Conv2d(prev_channels, channels, kernel_size=ksize)
+        # elif in_dim == 5:  # [B, C, D, H, W]
+        #     layer = nn.Conv3d(prev_channels, channels, kernel_size=ksize)
 
         prev_channels = channels
 
@@ -160,11 +161,11 @@ def get_layers(x, ksizes, max_channels=64):
         dims.append(prev.shape)
         layers.append(layer)
 
-    print(dims)
+    # print(dims)
 
     numel_wo_batch = dims[-1][1] * dims[-1][2]
 
-    print(numel_wo_batch)
+    # print(numel_wo_batch)
     # conv_out = self.dims[-1].numel()
     pool_ksize = math.floor(math.log2(numel_wo_batch))
 

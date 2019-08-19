@@ -15,7 +15,7 @@ import h
 This network is defined recursively.
 |layers| ~ log_2(input_dim)
 '''
-class Net(nn.Module):
+class VAE(nn.Module):
     def __init__(self, input_dim):
         super(Net, self).__init__()
         self.input_dim = input_dim
@@ -63,13 +63,13 @@ class Net(nn.Module):
 if __name__ == '__main__':
 
     data_loader = Loader()
-    net = Net(data_loader.length).double()
+    net = VAE(data_loader.length).double()
 
     print(net)
     optimizer = optim.RMSprop(net.parameters(), lr=1e-3)
     epochs = 1
 
-    net.train()
+    VAE.train()
 
     for i in range(1, epochs + 1):
         for j, (x, _) in enumerate(data_loader):

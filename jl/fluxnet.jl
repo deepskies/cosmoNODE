@@ -90,7 +90,9 @@ module FL
     function LearnLC()
         data = FluxLoader()
         X, Y = data
-        # X = convert()
+        data_size = length(X)
+        # X = convert(Array{Float32, data_size}, X)
+        # Y = convert(Array{Float32, data_size}, Y)
         model = Chain(Dense(704, 352, tanh), Dense(352, 176, tanh), Dense(176, 14), softmax)
         loss(x, y) = Flux.crossentropy(model(x), y)
         params = Flux.params(model)

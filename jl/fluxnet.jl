@@ -2,30 +2,41 @@ module FL
     using Flux, DataFrames, CSV, Statistics
     function FluxLoader()
         df = CSV.read("../demos/data/training_set.csv")
-        meta = CSV.read("../demos/data/training_set_metadata.csv")
-        # curves = groupby(df[: , [:object_id, :mjd, :flux]], :object_id)  # only using 3 columns
-        max_seq_len = seq_max_len_by(df)
 
+        labels = get_labels()
+        curves = get_curves(df)
+
+        # data = zip(curves, labels)
+        return (curves, labels)
+    end
+
+    function get_df()
+        df = CSV.read("../demos/data/training_set.csv")
+        return df
+    end
+
+    function get_groups(df)
         groups = groupby(df, :object_id)
-        # includes padding
-        curves = data_from_subdfs(groups, max_seq_len)
+        return groups
+    end
 
+    function get_curves(df)
+        groups = get_groups(df)
+        max_seq_len = seq_max_len_by(df)
+        curves = data_from_subdfs(groups, max_seq_len)
+        # curves = hcat(Array{Float32, 1}.(reshape.(curves, :))...)
+        curves = hcat(float.(reshape.(curves, :))...)
+        return curves
+    end
+
+    function get_labels()
+        meta = CSV.read("../demos/data/training_set_metadata.csv")
         targets = meta[: , :target]
         classes = sort(unique(targets))
         labels = Flux.onehotbatch(targets, classes)  # Y
-
-        # padded_lcs = []
-        # for curve in curves
-        #     padded_lc = pad_lc(curve)
-        #     append!(padded_lcs, padded_lc)
-        # end
-
-        label_vec = onehot_batch_to_vec(labels)
-
-        # data = zip(curves, label_vec)
-
-        return curves, label_vec
+        return labels
     end
+
 
     # TODO test if this is faster than a by(df, :object_id, nrow) call
     function seq_max_len_loop(grouped_df)
@@ -47,6 +58,7 @@ module FL
         return max_seq_len
     end
 
+    # function gd_to_data(grouped_df)
 
     # this is probably super inefficient and could be done w a single 'by' call
     function data_from_subdfs(grouped_df, max_seq_len)
@@ -83,25 +95,24 @@ module FL
         vec_lc = vec(lc)
         padding = zeros((max_seq_len * num_cols) - lc_len)
         append!(vec_lc, padding)
-        return vec_lc
+        arr_lc = convert(Array, vec_lc)
+        return arr_lc
     end
 
 
     function LearnLC()
-        data = FluxLoader()
-        X, Y = data
-        data_size = length(X)
-        # X = convert(Array{Float32, data_size}, X)
-        # Y = convert(Array{Float32, data_size}, Y)
-        model = Chain(Dense(704, 352, tanh), Dense(352, 176, tanh), Dense(176, 14), softmax)
-        loss(x, y) = Flux.crossentropy(model(x), y)
+        X, Y = FluxLoader()
+        dataset = Base.Iterators.repeated((X, Y), 50)
+
+        model = Chain(Dense(704, 352), Dense(352, 176, relu), Dense(176, 14, relu), softmax)
+        loss(x, y) = Flux.mse(model(x), y)
         params = Flux.params(model)
         evalcb = () -> @show(loss(X, Y))
-        accuracy(x, y) = mean(Flux.onecold(m(x)) .== Flux.onecold(y))
-        # callback= # todo
+        accuracy(x, y) = mean(Flux.onecold(model(x)) .== Flux.onecold(y))
         opt = ADAM()
-        Flux.train!(loss, params, data, opt, cb=Flux.throttle(evalcb, 10))
 
+        println("abt to train")
+        Flux.train!(loss, params, dataset, opt, cb=Flux.throttle(evalcb, 10))
         accuracy(X, Y)
     end
 end

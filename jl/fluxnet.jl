@@ -100,12 +100,12 @@ module FL
     end
 
 
-    function LearnLC()
+    function LearnLC(epochs=50)
         X, Y = FluxLoader()
-        dataset = Base.Iterators.repeated((X, Y), 50)
+        dataset = Base.Iterators.repeated((X, Y), epochs)
 
         model = Chain(Dense(704, 352), Dense(352, 176, relu), Dense(176, 14, relu), softmax)
-        loss(x, y) = Flux.mse(model(x), y)
+        loss(x, y) = Flux.crossentropy(model(x), y)
         params = Flux.params(model)
         evalcb = () -> @show(loss(X, Y))
         accuracy(x, y) = mean(Flux.onecold(model(x)) .== Flux.onecold(y))

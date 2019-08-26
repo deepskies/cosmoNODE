@@ -1,4 +1,4 @@
-using DifferentialEquations
+using DifferentialEquations, Plots, Flux, DiffEqFlux
 function lotka_volterra(du,u,p,t)
   x, y = u
   α, β, δ, γ = p
@@ -10,11 +10,7 @@ tspan = (0.0,10.0)
 p = [1.5,1.0,3.0,1.0]
 prob = ODEProblem(lotka_volterra,u0,tspan,p)
 sol = solve(prob,Tsit5())
-using Plots
 plot(sol)
-
-
-using Flux, DiffEqFlux
 
 p = param([2.2, 1.0, 2.0, 0.4])
 params = Flux.Params([p])

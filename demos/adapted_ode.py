@@ -41,8 +41,8 @@ def visualize(pred_interpolation, itr):
 
     x = train_times.flatten().numpy()
     # even if we pass many columns to y we just take the first column (assumed to be flux)
-    y = train_ys[:, 0].flatten().numpy()
-    # y = train_ys
+    # y = train_ys[:, 0].flatten().numpy()
+    y = train_ys
     fig.suptitle('N-ODE Function Approximation', fontsize=20)
     plt.xlabel('Time', fontsize=18)
     plt.ylabel('Y', fontsize=16)
@@ -50,10 +50,10 @@ def visualize(pred_interpolation, itr):
     # print(len(x))
     # print(len(y))
     plt.scatter(x, y, c='b', s=0.5)
-    plt.scatter(test_times.numpy(), test_ys[:, 0].numpy(), c='r', s=0.5)
-    # plt.scatter(test_times.numpy(), test_ys.numpy(), c='r', s=0.5)
-    plt.plot(eval_times.tolist(), pred_interpolation[:, 0].tolist())
-    # plt.plot(eval_times.tolist(), pred_interpolation.flatten().numpy())
+    # plt.scatter(test_times.numpy(), test_ys[:, 0].numpy(), c='r', s=0.5)
+    plt.scatter(test_times.numpy(), test_ys.numpy(), c='r', s=0.5)
+    # plt.plot(eval_times.tolist(), pred_interpolation[:, 0].tolist())
+    plt.plot(eval_times.tolist(), pred_interpolation.flatten().numpy())
 
     # plt.draw()
     fig.savefig('./media/tests/light_curve' + str(itr))
@@ -95,12 +95,13 @@ class ODEFunc(nn.Module):
                 nn.init.constant_(m.bias, val=0)
 
     def forward(self, t, y):
-        return self.net(y)
+        return self.net(torch.cos(y))
 
 # if toy:
 # lc = LC(cols=['mjd', 'flux', 'passband', 'flux_err', 'detected'], groupby_cols=['object_id'], meta=True)
-lc = LC(cols=['mjd', 'flux'], groupby_cols=['object_id'])
-dim = lc.dim
+# lc = LC(cols=['mjd', 'flux'], groupby_cols=['object_id'])
+# dim = lc.dim
+
 viz = True
 viz_at_end = True
 
@@ -119,30 +120,31 @@ graph_3d = False
 # else:
 #     graph_3d = False
 
-num_curves = len(lc)
-curve = lc[0]
-curve = lc[np.random.choice(num_curves)]
-curve = curve.sort_values(by='mjd')
-dim = lc.dim
 
-# x = np.linspace(1, 50, 1000)
+# num_curves = len(lc)
+# curve = lc[0]
+# curve = lc[np.random.choice(num_curves)]
+# curve = curve.sort_values(by='mjd')
+# dim = lc.dim
+
+x = np.linspace(1, 10, 1000)
 # # f = np.log(x)
-# f = np.sin(x)
-# dim = 1
+f = 10 * np.sin(x/4)
+dim = 1
 
 # f = 100 * np.cos(x/100)
 # odeint takes time as 1d
-t = curve['mjd'].values
-# t = x
+# t = curve['mjd'].values
+t = x
 # t_list = t.tolist()
 times = torch.tensor(t)
 # times = torch.tensor(t).reshape(-1, 1)
 
 # exclude time from the data
-ys = torch.tensor(curve.drop(['mjd'], axis=1).values)
+# ys = torch.tensor(curve.drop(['mjd'], axis=1).values)
 
-# ys = torch.tensor(f)
-ys_list = ys.tolist()
+ys = torch.tensor(f)
+# ys_list = ys.tolist()
 # .values, dtype=torch.double)
 
 ys_reshaped = ys.reshape(-1, 1, dim)
@@ -205,8 +207,8 @@ if split_type == 'rand':
 train_size = len(train_times)
 print(f'train_size: {train_size}')
 
-batch_time = 2 #  train_size // 4
-batch_size = train_size // 2  #  train_size // 2
+batch_time = 10 #  train_size // 4
+batch_size = train_size // 20  #  train_size // 2
 
 epochs = 5
 niters = 300
@@ -221,8 +223,8 @@ losses = []
 eval_times = torch.linspace(times.min(), times.max(), data_size*2).double()
 print(f'eval_times: {eval_times.shape}')
 
-r_tol = 1
-a_tol = 1
+r_tol = 1e-3
+a_tol = 1e-5
 
 print(f'train_times : {train_times.dtype}, train_ys_shaped: {train_ys_shaped.dtype}')
 print(f'train_times.shape : {train_times.shape}, train_ys_shaped.shape: {train_ys_shaped.shape}')
@@ -241,9 +243,9 @@ for epoch in range(1, epochs + 1):
         pred_f = odeint(odefunc, batch_y0, batch_t, rtol=r_tol, atol=a_tol)
         pred_f = pred_f.view(batch_y.shape)
         # loss = torch.abs(torch.sum(pred_f - batch_y))
-        loss = criterion(pred_f, batch_y)
+        # loss = criterion(pred_f, batch_y)
+        loss = torch.mean(torch.abs(pred_f - batch_y))  # loss fxn from ricky
         print(loss.item())
-        # loss = torch.mean(torch.abs(pred_f - batch_y))  # loss fxn from ricky
         loss.backward()
         optimizer.step()
         if itr % test_freq == 0:

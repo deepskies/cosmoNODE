@@ -6,7 +6,6 @@ module FL
         labels = get_labels()
         curves = get_curves(df)
 
-        # data = zip(curves, labels)
         return (curves, labels)
     end
 

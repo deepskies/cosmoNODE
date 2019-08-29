@@ -6,12 +6,18 @@
 
 =#
 
-module FL
+module FluxNode
     include("./fluxnet.jl")
     using .FL
-    using DifferentialEquations, Flux, DiffEqFlux
+    using DifferentialEquations, Flux, DiffEqFlux, CSV
+
     function fluxnode()
-        X, Y = FL.FluxLoader()
+	    df = CSV.read("../demos/data/training_set.csv")
+	    groups = groupby(df, [:object_id, :passband])
+		g = groups[1]
+
+	return
+        # X, Y = FL.FluxLoader()
     end
 
-    function 
+    function

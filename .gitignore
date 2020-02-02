@@ -5,8 +5,7 @@ demos/data/
 #dont need caches
 /__pycache__/
 
-*/__pycache__/
-*/*/__pycache__/
+__pycache__/
 
 demos/baselines/saved_models/
 demos/baselines/conv_mnist.py
@@ -15,8 +14,10 @@ demos/notebooks/Untitled.ipynb
 demos/ode_models
 
 .ipynb_checkpoints/
-augmented-neural-ode-example.ipynb
-
+*.ipynb
+*.png
+*.bson
+*.txt
 # don't want to upload my API key
 kaggle.json
 

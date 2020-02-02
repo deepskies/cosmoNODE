@@ -242,8 +242,8 @@ class ODENet(nn.Module):
         self.linear_layer = nn.Linear(self.odeblock.odefunc.input_dim,
                                       self.output_dim)
 
-    def forward(self, x, return_features=False):
-        features = self.odeblock(x)
+    def forward(self, x, eval_times, return_features=False):
+        features = self.odeblock(x, eval_times=eval_times)
         pred = self.linear_layer(features)
         if return_features:
             return features, pred

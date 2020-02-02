@@ -8,20 +8,21 @@ using CSV, DataFrames, StatsBase, Flux, CuArrays
 
 function FluxLoader(;norm::Bool=false, v::Bool=true) #;hot::Bool=true)
     df, meta = read_data()
-    # dropmissing!(df)
-    data = join(df, meta, on=:object_id) # has target 
+    # data = join(df, meta, on=:object_id) # has target 
+    # df = dropmissing(data)
+    data = dropmissing(df)
 
     # dropping most common 
-    data = data[data.target .!= 90, :]
-    obj_ids = data.object_id
+    # data = data[data.target .!= 90, :]
+    # obj_ids = data.object_id
     
-    display(describe(data))
     bands = Flux.onehotbatch(data.passband, 0:5)'
     data = hcat(data, DataFrame(bands), makeunique=true)
     
-    classes = sort(unique(data.target))
-    labels = Flux.onehotbatch(data.target, classes)'
-    deletecols!(data, [:passband, :target, :distmod])
+    classes = sort(unique(meta.target))
+    labels = Flux.onehotbatch(meta.target, classes)'
+    deletecols!(data, [:passband])
+    # deletecols!(data, [:passband, :target, :distmod])
     if norm
         deletecols!(data, [:object_id])
         data = normdf(data)
@@ -34,12 +35,14 @@ function FluxLoader(;norm::Bool=false, v::Bool=true) #;hot::Bool=true)
     return data, labels
 end
 
-function get_curve(curves::GroupedDataFrame, idx::Union{Int, DataFrames.GroupKey})::Matrix
+function get_curve(curves::GroupedDataFrame, idx::Union{Int, DataFrames.GroupKey}; norm::Bool=false)::Matrix
     # like pytorch dataset __getitem__
     curve = DataFrame(curves[idx])
     deletecols!(curve, :object_id)
-    subset = view_subset(curve)
-    Matrix(subset)'
+    subset = copy(view_subset(curve))
+    subset = normdf(subset)
+    # subset = normdf(curve)
+    Matrix(subset)
 end
 
 
@@ -49,11 +52,12 @@ function example(data, labels)
     Array(data[idx, :]), Array(labels[idx, :])
 end 
 
+
 function normdf(df::DataFrame)::DataFrame
-    names = names(df)
-    m = Matrix(data)
+    cols = names(df)
+    m = Matrix(df)'
     dt = fit(UnitRangeTransform, m)
-    DataFrame(StatsBase.transform(dt, m), columns=names)
+    DataFrame(StatsBase.transform(dt, m)) #, names=cols)
 end
 
 function read_data()

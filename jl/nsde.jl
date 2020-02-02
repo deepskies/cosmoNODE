@@ -7,18 +7,18 @@ include("utils.jl")
 using .Utils
 
 data, labels = Utils.FluxLoader(norm=false)
-curves = groupby(data, :object_id)
-idx = 30
-k = rand(keys(curves))
+curve_data = groupby(data, :object_id)
+idx = rand(1:length(curve_data))
+k = rand(keys(curve_data))
 typeof(k)
 
-m = Utils.get_curve(curves, idx)
+m = Utils.get_curve(curve_data, idx)
 t = m[1, :]
-target_data = m[2:end, :]
+target_data = m[2:3, :]
 u0 = target_data[:, 1]
 dim = length(u0)
 
-sde_data_vars = zeros(dim, length(t))
+sde_data_vars = zeros(dim, length(t)) .+ 1e-3
 
 drift_dudt = Chain(
     Dense(dim, 20, tanh),
@@ -29,7 +29,7 @@ drift_dudt = Chain(
 
 diffusion_dudt = Chain(Dense(dim,dim))
 
-n_sde = NeuralDSDE(drift_dudt,diffusion_dudt,(t[1], t[end]),SOSRI(),saveat=t,reltol=1e-1,abstol=1e-1)
+n_sde = NeuralDSDE(drift_dudt,diffusion_dudt,(t[1], t[end]),SOSRI(),saveat=t,reltol=1e-2,abstol=1e-2)
 ps = Flux.params(n_sde)
 pred = n_sde(u0)
 
@@ -37,7 +37,7 @@ function predict_n_sde()
   Array(n_sde(u0))
 end
 
-function loss_n_sde(;n=10)
+function loss_n_sde(;n=5)
   samples = [predict_n_sde() for i in 1:n]
   means = reshape(mean.([[samples[i][j] for i in 1:length(samples)] for j in 1:length(samples[1])]),size(samples[1])...)
   vars = reshape(var.([[samples[i][j] for i in 1:length(samples)] for j in 1:length(samples[1])]),size(samples[1])...)
@@ -51,8 +51,8 @@ losses = []
 
 cb = function ()
   cur_pred = predict_n_sde()
-  display(string("target data shape: ", size(target_data)))
-  display(string("pred shape: ", size(cur_pred)))
+  display(string("pred : ", cur_pred))
+  display(string("target_data : ", target_data))
   pl = scatter(t[2:end], target_data[:, 2:end]', label="data", markershape=:star, markersize=5) #, markercolor=:blue)
   scatter!(pl, t[2:end], cur_pred[:, :]', label="prediction", markersize=5) #, markercolor=:red)
   yticks!([-5:5;])

@@ -56,8 +56,6 @@ accuracy(example(data, labels)...)
 
 function plotit(arr)
     plot(scatter(arr, markersize=0.5, show=true, size=(900, 900)))
-    # scatter(losses, show=true)
-    # savefig("losses.png")
 end
 
 plotit(losses)

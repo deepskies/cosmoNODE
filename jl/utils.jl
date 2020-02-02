@@ -21,50 +21,40 @@ function FluxLoader(;norm::Bool=false, v::Bool=true) #;hot::Bool=true)
     
     classes = sort(unique(data.target))
     labels = Flux.onehotbatch(data.target, classes)'
+    deletecols!(data, [:passband, :target, :distmod])
     if norm
-        deletecols!(data, [:passband, :target, :distmod, :object_id])
-        m = Matrix(data)
-        dt = fit(UnitRangeTransform, m)
-        ret = DataFrame(StatsBase.transform(dt, m))
-        ret.object_id = obj_ids
-    else
-        deletecols!(data, [:passband, :target, :distmod])
-        ret = Matrix(data)
+        deletecols!(data, [:object_id])
+        data = normdf(data)
+        data.object_id = obj_ids
+    end
     if v
-        display(size(ret))
+        display(size(data))
         display(size(labels))
     end
-    return ret, labels
+    return data, labels
 end
 
-function get_curve(curves)
-    idx = rand(1:length(curves))
-    curve = curves[idx]
+function get_curve(curves::GroupedDataFrame, idx::Union{Int, DataFrames.GroupKey})::Matrix
+    # like pytorch dataset __getitem__
+    curve = DataFrame(curves[idx])
+    deletecols!(curve, :object_id)
     subset = view_subset(curve)
-
-    m = Matrix(subset)'
-    dt = fit(UnitRangeTransform, m)
-    m = StatsBase.transform(dt, m)
-    t = copy(m[1, :]) #|> gpu
-    display(t)
-
-    data = copy(m[2:end, :])
-    target_data = data # |> gpu
-    target_data = target_data[:, :]
-    # augmented
-    #   target_data = vcat(target_data,zeros(1,size(target_data,2)))
-    #   target_data = vcat(target_data,zeros(1,size(target_data,2)))
-
-    u0 = target_data[:, 1] #|> gpu
-    println(string("initial conditions", u0))
-    return t, target_data, u0
+    Matrix(subset)'
 end
+
 
 function example(data, labels)
+    # __getitem__ for rows 
     idx = rand(1:size(data)[1])
-    Array(data[idx, :]) |> gpu, Array(labels[idx, :]) |> gpu
+    Array(data[idx, :]), Array(labels[idx, :])
 end 
 
+function normdf(df::DataFrame)::DataFrame
+    names = names(df)
+    m = Matrix(data)
+    dt = fit(UnitRangeTransform, m)
+    DataFrame(StatsBase.transform(dt, m), columns=names)
+end
 
 function read_data()
     path = "/home/sippycups/D/kaggle/PLAsTiCC-2018/"

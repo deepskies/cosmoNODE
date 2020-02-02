@@ -6,18 +6,23 @@ using StatsBase, Statistics
 include("utils.jl")
 using .Utils
 
-data, labels = Utils.FluxLoader()
+data, labels = Utils.FluxLoader(norm=false)
 curves = groupby(data, :object_id)
+idx = 30
+k = rand(keys(curves))
+typeof(k)
 
-t, target_data, u0 = Utils.get_curve(curves)
+m = Utils.get_curve(curves, idx)
+t = m[1, :]
+target_data = m[2:end, :]
+u0 = target_data[:, 1]
 dim = length(u0)
-
 
 sde_data_vars = zeros(dim, length(t))
 
 drift_dudt = Chain(
     Dense(dim, 20, tanh),
-    Dense(20, 20, tanh),
+    # Dense(20, 20, tanh),
     Dense(20, 20, tanh),
     Dense(20, dim)
 ) #|> gpu

@@ -6,6 +6,7 @@ demos/data/
 /__pycache__/
 
 __pycache__/
+local/
 
 demos/baselines/saved_models/
 demos/baselines/conv_mnist.py

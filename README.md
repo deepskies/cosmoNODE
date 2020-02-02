@@ -1,37 +1,34 @@
 # cosmoNODE
+
+## Repository Overview
+
 Neural Ordinary Differential Equations for Astronomical Sky Surveys
 
 I am using [Kaggle PLAsTiCC-2018](https://www.kaggle.com/c/PLAsTiCC-2018/)
 
+Neural differential equations have not been applied to many fields of ML, including astronomy.
+
 The goal is to see if there is any improvement in the classification accuracy using NODEs.
 
-Given that ODEs are commonly used for time series analysis,
-my hypothesis is that there will be a measurable improvement.
+Given that ODEs are commonly used for time dependent systems,
+my hypothesis is that there will be a measurable improvement versus LSTM/RNN classification methods.
 
-# [Project Overview document](https://drive.google.com/open?id=1dDKOfZrUGG_9MTxTWis1rhZ4L-IAFqjq8vEfahfMiVs)
+## Code
 
-# [Overleaf Paper](https://www.overleaf.com/read/pznqtfcgzxyp):
-	+ For edit access ask Anand (anandj @ uchicago dot edu)
+I am working on implementing the PLAsTiCC classification model in Julia, using the DifferentialEquations.jl and Flux.jl packages.
 
-# [Colab Notebooks](https://drive.google.com/open?id=1twyeXpB2EeFEyGj7Y61C9KN7vSuHcUv0):
+Currently I have a neural stochastic differential equation (NSDE) learn to model the flux of a given object over time. 
 
-# Stable tests:
-	+ keras_classify.py
+## Links
 
-	+ (semi) simple_torch.py
+[Project Overview document](https://drive.google.com/open?id=1dDKOfZrUGG_9MTxTWis1rhZ4L-IAFqjq8vEfahfMiVs)
 
-	+ ode_demo.py
+[Overleaf Paper](https://www.overleaf.com/read/pznqtfcgzxyp)
 
-# Repository Overview
-Neural differential equations have not been applied to many fields of ML.
-This repository includes astronomical applications of neural differentials.
-We implement baseline implementations for classification to cross validate
-the NODE and ANODE algorithms.
+[Colab Notebooks](https://drive.google.com/open?id=1twyeXpB2EeFEyGj7Y61C9KN7vSuHcUv0)
 
+`contact (anandj @ uchicago dot edu)`
 
-## requirements:
-	- torchdiffeq by Chen et all (2018)
-	- augmented neural ODEs
-	- stuff in requirements.txt
-	- [Kaggle PLAsTiCC-2018 data](https://www.kaggle.com/c/PLAsTiCC-2018/data)
-		- place this in ./demos/data/
+## Credit
+
+TODO add a whole bunch of papers

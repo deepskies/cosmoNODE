@@ -20,10 +20,10 @@ dim = length(u0)
 sde_data_vars = zeros(dim, length(t)) .+ 1e-3
 
 drift_dudt = Chain(
-    Dense(dim, 20, tanh),
+    FastDense(dim, 20, tanh),
     # Dense(20, 20, tanh),
-    Dense(20, 20, tanh),
-    Dense(20, n_classes),
+    FastDense(20, 20, tanh),
+    FastDense(20, n_classes),
     softmax
 ) #|> gpu
 

@@ -6,58 +6,69 @@ using StatsBase, Statistics
 include("utils.jl")
 using .Utils
 
-data, labels = Utils.FluxLoader(norm=false)
-curve_data = groupby(data, :object_id)
+function view_subset(df, start_frac = 0.50, end_frac = 1, stride_amt=2)
+	len = size(df)[1]
+	view_start = Int(round(len * start_frac))
+	view_end = Int(round(len * end_frac))
+	subset = view(df, view_start:stride_amt:view_end, :)
+	return subset
+end
+
+df, labels = Utils.FluxLoader(norm=false)
+curve_data = groupby(df, :object_id)
 idx = rand(1:length(curve_data))
-m = Utils.get_curve(curve_data, idx; start_frac=0, end_frac=1)
-t = m[1, :]
-target_data = m[2:end, :]
+# m = copy(view_subset(curve_data[idx]))
+m = copy(curve_data[idx])
+
+err = copy(m.flux_err)
+t = copy((m.mjd .- m.mjd[1]) ./ 1e3)
+tspan = (t[1], t[end])
+
+target_data = Matrix(select!(m, :flux))'
 u0 = target_data[:, 1]
 dim = length(u0)
 
-sde_data_vars = zeros(dim, length(t)) .+ 1e-3
+sde_data_vars = zeros(dim, length(t))
 
 drift_dudt = Chain(
-    Dense(dim, 20, tanh),
-    # Dense(20, 20, tanh),
-    Dense(20, 20, tanh),
-    Dense(20, dim)
+	Dense(dim, 16, tanh),
+	Dense(16, dim)
 ) #|> gpu
 
 diffusion_dudt = Chain(Dense(dim,dim))
 
-n_sde = NeuralDSDE(drift_dudt,diffusion_dudt,(t[1], t[end]),SOSRI(),saveat=t,reltol=1e-1,abstol=1e-1)
-ps = Flux.params(n_sde)
-pred = n_sde(u0)
+n_sde = NeuralDSDE(drift_dudt,diffusion_dudt,tspan,SOSRI(),saveat=t,reltol=1e-3,abstol=err)
+n_sde.p
+pred = n_sde(u0, n_sde.p)
+drift_(u,p,t) = drift_dudt(u,p[1:n_sde.len])
+diffusion_(u,p,t) = diffusion_dudt(u,p[(n_sde.len+1):end])
 
-function predict_n_sde()
-	Array(n_sde(u0))
+display(n_sde.p)
+
+function predict_n_sde(p)
+  Array(n_sde(u0,p))
 end
 
-function loss_n_sde(;n=5)
-	samples = [predict_n_sde() for i in 1:n]
-	means = reshape(mean.([[samples[i][j] for i in 1:length(samples)] for j in 1:length(samples[1])]),size(samples[1])...)
-	vars = reshape(var.([[samples[i][j] for i in 1:length(samples)] for j in 1:length(samples[1])]),size(samples[1])...)
-	sum(abs2,target_data - means) + sum(abs2,sde_data_vars - vars)  # try to replace sde_data_vars with flux_err
+function loss_n_sde(p;n=100)
+  samples = [predict_n_sde(p) for i in 1:n]
+  means = reshape(mean.([[samples[i][j] for i in 1:length(samples)] for j in 1:length(samples[1])]),size(samples[1])...)
+  vars = reshape(var.([[samples[i][j] for i in 1:length(samples)] for j in 1:length(samples[1])]),size(samples[1])...)
+  loss = sum(abs2,target_data[:, 1:end] - means) + sum(abs2,sde_data_vars[:, 1:end] - vars)
+  loss,means,vars
 end
+loss_n_sde(n_sde.p)
 
-repeated_data = Iterators.repeated((), 1000)
-opt = ADAM(0.025)
+opt = ADAM()
 
-losses = []
-cb = function ()
-	cur_pred = predict_n_sde()
-	display(string("pred : ", cur_pred[1:2, 2:end]))
-	display(string("target : ", target_data[1:2, 2:end]))
-	pl = scatter(t[2:end], target_data[1, 2:end], label="flux_target", markersize=5, markercolor=:blue)
-	scatter!(pl, t[2:end], target_data[2, 2:end], label="flux_err_target", markersize=5, markercolor=:green)
-	scatter!(pl, t[2:end], cur_pred[1, 2:end], label="flux_pred", markersize=5, markercolor=:red) #, markercolor=:red)
-	scatter!(pl, t[2:end], cur_pred[2, 2:end], label="flux_err_pred", markersize=5, markercolor=:orange)
-	yticks!([-5:5;])
-	xticks!(t[2]:t[end])
-	plot!(pl, xlabel="normed_mjd", ylabel="normed_param", size=(900, 900))
+cb = function (p,loss,means,vars) #callback function to observe training
+  display(loss)
+
+  pl = scatter(t[2:end],target_data[:,2:end]',label="data",markercolor=:red)
+  scatter!(pl,t[2:end],means[1,:],ribbon = vars[1,:], label="pred_flux",markercolor=:blue)
+  display(plot(pl, size=(1000, 600)))
+  return false
 end
-cb()
-Flux.train!(loss_n_sde, ps, repeated_data, opt, cb = cb)
+cb(n_sde.p,loss_n_sde(n_sde.p)...)
 
-end
+res1 = DiffEqFlux.sciml_train((p)->loss_n_sde(p,n=10),  n_sde.p, opt, cb = cb, maxiters = 50)
+

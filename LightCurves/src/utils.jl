@@ -79,10 +79,10 @@ function view_subset(df; start_frac=0.50, end_frac=1)
     return subset
 end
 
-function gen_cb(t::AbstractVector, target::AbstractMatrix, pred_fn)
+# function gen_cb(t::AbstractVector, target::AbstractMatrix, pred_fn)
 
-    return cb
-end
+#     return cb
+# end
 
 # ------
 

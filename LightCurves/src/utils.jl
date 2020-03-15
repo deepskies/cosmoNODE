@@ -60,12 +60,7 @@ function normdf(df::DataFrame)::DataFrame
     DataFrame(StatsBase.transform(dt, m)) #, names=cols)
 end
 
-function read_data()
-    path = "/home/sippycups/D/kaggle/PLAsTiCC-2018/"
-    df = CSV.read(string(path, "training_set.csv"))
-    meta = CSV.read(string(path, "training_set_metadata.csv"))
-    return df, meta
-end
+
 
 function view_subset(df; start_frac=0.50, end_frac=1)
     len = size(df)[1]
